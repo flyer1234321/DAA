@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>CRJ900 Load &amp; Trim</title>
 <style>
   :root{
-    --bg:#0d1420; --panel:#16202f; --panel2:#1c2939; --line:#2a3a50;
-    --txt:#e8eef6; --dim:#8fa3ba; --accent:#4db8ff; --green:#3ddc84;
-    --amber:#ffb347; --red:#ff5c5c; --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+    --bg:#f1f3f6; --panel:#ffffff; --panel2:#eef0f4; --line:#dfe3ea;
+    --txt:#1c2430; --dim:#8a93a3; --accent:#31508f; --green:#279a52;
+    --amber:#9a6c10; --red:#c43c3c; --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   body{margin:0 auto; background:var(--bg); color:var(--txt);
@@ -21,9 +21,9 @@
     border-radius:12px; overflow:hidden; margin-bottom:14px;}
   .tabs button{flex:1; background:none; border:none; color:var(--dim); font-size:.9rem;
     padding:13px 0; cursor:pointer; letter-spacing:.5px;}
-  .tabs button.on{background:var(--accent); color:#04121f; font-weight:700;}
-  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px;
-    padding:14px; margin-bottom:12px;}
+  .tabs button.on{background:var(--accent); color:#fff; font-weight:700;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:14px; margin-bottom:12px; box-shadow:0 4px 14px rgba(25,40,80,.06);}
   .card h2{font-size:.74rem; text-transform:uppercase; letter-spacing:1px;
     color:var(--accent); margin:0 0 10px;}
   .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
@@ -36,12 +36,12 @@
     padding:11px 6px; text-align:center; appearance:none; -moz-appearance:textfield;}
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
-  input::placeholder{color:#42536b; opacity:1; font-style:italic; font-size:.95rem;}
+  input::placeholder{color:#a4adbc; opacity:1; font-style:italic; font-size:.95rem;}
   input[type=date]{width:100%; background:var(--panel2); border:1px solid var(--line);
     border-radius:10px; color:var(--txt); font-family:var(--mono); font-size:1.1rem;
     padding:11px 6px; text-align:center; appearance:none; -webkit-appearance:none; min-height:48px;}
   input[type=date]::-webkit-date-and-time-value{text-align:center;}
-  input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.7);}
+  input[type=date]::-webkit-calendar-picker-indicator{filter:none;}
   input:focus,select:focus{outline:none; border-color:var(--accent);}
   input.bad{border-color:var(--red)!important; color:var(--red)!important;}
   select{font-size:1rem; padding:12px 4px;}
@@ -49,7 +49,7 @@
     border-radius:10px; overflow:hidden;}
   .seg button{flex:1; background:none; border:none; color:var(--dim); font-size:1.35rem;
     padding:12px 0; cursor:pointer; font-family:var(--mono);}
-  .seg button.on{background:var(--accent); color:#04121f; font-weight:700;}
+  .seg button.on{background:var(--accent); color:#fff; font-weight:700;}
   .stepper{display:flex; align-items:center; background:var(--panel2);
     border:1px solid var(--line); border-radius:10px; overflow:hidden;}
   .stepper.bad{border-color:var(--red);}
@@ -58,7 +58,7 @@
     width:46px; padding:10px 0; cursor:pointer; user-select:none; flex:none;}
   .stepper button:active{background:var(--line);}
   .stepper input{border:none; background:none; flex:1; font-size:1.35rem; padding:12px 0; min-width:0;}
-  .result{background:linear-gradient(160deg,#122418,#0f1a28); border:2px solid var(--green);
+  .result{background:#e9f6ee; border:2px solid #9fd6b4;
     border-radius:16px; padding:20px 16px; margin-bottom:12px; text-align:center;}
   .result.na{border-color:var(--line); background:var(--panel);}
   .newtrim{font-family:var(--mono); font-size:4rem; font-weight:700; color:var(--green); line-height:1;}
@@ -66,11 +66,11 @@
   .lbl{font-size:.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;}
   .delta{font-family:var(--mono); font-size:1rem; color:var(--dim); margin-top:8px;}
   .delta b{color:var(--txt);}
-  .warn{background:#33230e; border:1px solid var(--amber); color:var(--amber);
+  .warn{background:#fdf3e0; border:1px solid #e5c37c; color:var(--amber);
     border-radius:10px; padding:10px; font-size:.85rem; margin-top:10px; text-align:left;}
-  .alert{background:#331414; border:1px solid var(--red); color:var(--red);
+  .alert{background:#fbe9e9; border:1px solid #e5a2a2; color:var(--red);
     border-radius:10px; padding:10px; font-size:.85rem; margin-top:10px; text-align:left;}
-  details{background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  details{background:var(--panel); border:1px solid var(--line); border-radius:16px; box-shadow:0 4px 14px rgba(25,40,80,.06);
     padding:0 14px; margin-bottom:12px;}
   summary{padding:13px 0; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;
     color:var(--accent); cursor:pointer; outline:none;}
@@ -82,7 +82,7 @@
   .rrow .v.ok::after{content:' ✓'; color:var(--green);}
   .rrow .v.over{color:var(--red); font-weight:700;}
   .disc{font-size:.66rem; color:var(--dim); line-height:1.5; margin:6px 2px 20px;}
-  canvas{width:100%; height:460px; border-radius:10px; background:#0a1019; display:block; margin-bottom:6px;}
+  canvas{width:100%; height:460px; border-radius:10px; background:#f7f9fc; border:1px solid #e3e8f0; display:block; margin-bottom:6px;}
   .legend{display:flex; flex-wrap:wrap; gap:10px; font-size:.68rem; color:var(--dim); margin-bottom:12px;}
   .idx{font-family:var(--mono); font-size:.72rem; color:var(--dim); text-align:center; margin-top:4px;}
   .neg{color:var(--red)!important;} .pos{color:var(--green);}
@@ -95,6 +95,27 @@
   table.zt .zn{font-family:var(--mono); color:var(--accent); font-weight:700; white-space:nowrap;}
   table.zt .zi{font-family:var(--mono); color:var(--dim); font-size:.7rem; white-space:nowrap;}
   .mass{font-family:var(--mono);}
+  .pdfbtn{display:block; width:100%; background:var(--accent); color:#fff; border:none;
+    border-radius:12px; padding:14px 0; font-size:1rem; font-weight:700; letter-spacing:.5px;
+    cursor:pointer; margin-bottom:12px;}
+  .pdfbtn:active{opacity:.85;}
+  #printSheet{display:none;}
+  @media print{
+    body{background:#fff; padding:0; max-width:none;}
+    body > *:not(#printSheet){display:none !important;}
+    #printSheet{display:block !important; color:#000; font-size:11px;}
+    #printSheet h1{font-size:15px; margin:0 0 2px;}
+    #printSheet .ph{font-size:9px; color:#444; margin-bottom:8px;}
+    #printSheet table{width:100%; border-collapse:collapse; margin-bottom:8px;}
+    #printSheet th, #printSheet td{border:1px solid #999; padding:3px 5px; text-align:center; font-size:10.5px;}
+    #printSheet th{background:#eee; font-weight:700;}
+    #printSheet .sec{font-size:10px; font-weight:700; letter-spacing:1px; margin:8px 0 3px; text-transform:uppercase;}
+    #printSheet img{width:62%; display:block; margin:4px auto;}
+    #printSheet .sig{display:flex; gap:30px; margin-top:22px;}
+    #printSheet .sig div{flex:1; border-top:1px solid #000; padding-top:3px; font-size:10px;}
+    #printSheet .foot{font-size:8px; color:#555; margin-top:10px;}
+    #printSheet .bad{color:#b00; font-weight:700;}
+  }
 </style>
 </head>
 <body>
@@ -310,6 +331,16 @@
 </div>
 
 <div class="card">
+  <h2>Sign-off</h2>
+  <div class="row2">
+    <div><label>Prepared by</label><input type="text" id="mPrep" placeholder="name"></div>
+    <div><label>Commander</label><input type="text" id="mCmdr" placeholder="name"></div>
+  </div>
+</div>
+
+<button class="pdfbtn" onclick="printSheet()">PDF / PRINT</button>
+
+<div class="card">
   <h2>Balance</h2>
   <div class="rrow"><span class="k">LIZFW (DOI + pax + cargo)</span><span class="v" id="oLIZFW">–</span></div>
   <div class="rrow"><span class="k">LITOW (LIZFW + fuel index)</span><span class="v" id="oLITOW">–</span></div>
@@ -468,20 +499,20 @@ function envBase(cvId, primFwd, primAft, secFwd, secAft){
 
   ctx.beginPath(); path(primFwd);
   [...primAft].reverse().forEach(p=>ctx.lineTo(X(p[1]),Y(p[0]/1000)));
-  ctx.closePath(); ctx.fillStyle='rgba(230,238,248,0.92)'; ctx.fill();
+  ctx.closePath(); ctx.fillStyle='rgba(49,80,143,0.10)'; ctx.fill();
 
   ctx.font='10px sans-serif'; ctx.lineWidth=1;
   for(let i=IX_MIN;i<=IX_MAX;i+=5){
-    ctx.strokeStyle = i%10===0 ? 'rgba(90,110,135,0.45)' : 'rgba(90,110,135,0.2)';
+    ctx.strokeStyle = i%10===0 ? 'rgba(70,90,120,0.28)' : 'rgba(70,90,120,0.13)';
     ctx.beginPath(); ctx.moveTo(X(i),mT); ctx.lineTo(X(i),cssH-mB); ctx.stroke();
-    if(i%10===0){ ctx.fillStyle='#8fa3ba'; ctx.textAlign='center'; ctx.fillText(i, X(i), cssH-mB+14); }
+    if(i%10===0){ ctx.fillStyle='#7a8494'; ctx.textAlign='center'; ctx.fillText(i, X(i), cssH-mB+14); }
   }
   for(let w=WT_MIN;w<=WT_MAX;w+=1){
-    ctx.strokeStyle = w%2===0 ? 'rgba(90,110,135,0.45)' : 'rgba(90,110,135,0.2)';
+    ctx.strokeStyle = w%2===0 ? 'rgba(70,90,120,0.28)' : 'rgba(70,90,120,0.13)';
     ctx.beginPath(); ctx.moveTo(mL,Y(w)); ctx.lineTo(cssW-mR,Y(w)); ctx.stroke();
-    if(w%2===0){ ctx.fillStyle='#8fa3ba'; ctx.textAlign='right'; ctx.fillText(w, mL-5, Y(w)+3); }
+    if(w%2===0){ ctx.fillStyle='#7a8494'; ctx.textAlign='right'; ctx.fillText(w, mL-5, Y(w)+3); }
   }
-  ctx.textAlign='center'; ctx.fillStyle='#aebfd4'; ctx.font='11px sans-serif';
+  ctx.textAlign='center'; ctx.fillStyle='#4a5568'; ctx.font='11px sans-serif';
   ctx.fillText('INDEX', mL+(cssW-mL-mR)/2, cssH-5);
   ctx.save(); ctx.translate(12, mT+(cssH-mT-mB)/2); ctx.rotate(-Math.PI/2);
   ctx.fillText('Weight (1000 kg)', 0, 0); ctx.restore();
@@ -491,42 +522,42 @@ function envBase(cvId, primFwd, primAft, secFwd, secAft){
     ctx.strokeStyle=color; ctx.lineWidth=w; ctx.setLineDash(dash||[]);
     ctx.stroke(); ctx.setLineDash([]);
   }
-  curve(secFwd, '#7a8db0', 1.5, [5,4]); curve(secAft, '#7a8db0', 1.5, [5,4]);
-  curve(primFwd, '#4db8ff', 2.5);       curve(primAft, '#4db8ff', 2.5);
+  curve(secFwd, '#9aa7c0', 1.5, [5,4]); curve(secAft, '#9aa7c0', 1.5, [5,4]);
+  curve(primFwd, '#31508f', 2.5);       curve(primAft, '#31508f', 2.5);
 
-  ctx.font='bold 11px sans-serif'; ctx.fillStyle='#4db8ff';
+  ctx.font='bold 11px sans-serif'; ctx.fillStyle='#31508f';
   ctx.textAlign='right'; ctx.fillText('FWD LIMIT', X(limIdx(primFwd,29000))-10, Y(29));
   ctx.textAlign='left';  ctx.fillText('AFT LIMIT', X(limIdx(primAft,31000))+10, Y(31));
 
   function wline(wkg, label){
     const w = wkg/1000;
     ctx.beginPath(); ctx.moveTo(mL,Y(w)); ctx.lineTo(cssW-mR,Y(w));
-    ctx.strokeStyle='#ffb347'; ctx.lineWidth=1.2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle='#ffb347'; ctx.textAlign='left'; ctx.font='bold 9.5px sans-serif';
+    ctx.strokeStyle='#d99114'; ctx.lineWidth=1.2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#d99114'; ctx.textAlign='left'; ctx.font='bold 9.5px sans-serif';
     ctx.fillText(label+' '+wkg, mL+6, Y(w)-4);
   }
   wline(MTOW,'MTOW'); wline(MLW,'MLW'); wline(MZFW,'MZFW');
 
   function ptCross(idx, wkg, label){
     const x=X(idx), y=Y(wkg/1000), r=9;
-    ctx.strokeStyle='#0a5c30'; ctx.lineWidth=6; ctx.lineCap='round';
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=6; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(x-r,y-r); ctx.lineTo(x+r,y+r);
     ctx.moveTo(x-r,y+r); ctx.lineTo(x+r,y-r); ctx.stroke();
-    ctx.strokeStyle='#3ddc84'; ctx.lineWidth=3;
+    ctx.strokeStyle='#279a52'; ctx.lineWidth=3;
     ctx.beginPath(); ctx.moveTo(x-r,y-r); ctx.lineTo(x+r,y+r);
     ctx.moveTo(x-r,y+r); ctx.lineTo(x+r,y-r); ctx.stroke();
     ctx.lineCap='butt';
-    ctx.fillStyle='#3ddc84'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillStyle='#279a52'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
     ctx.fillText(label, x+13, y+4);
   }
   function ptBefore(idx, wkg){
     const x=X(idx), y=Y(wkg/1000);
     ctx.beginPath(); ctx.arc(x,y,7,0,7);
-    ctx.strokeStyle='#365a80'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.strokeStyle='#5b708f'; ctx.lineWidth=2.5; ctx.stroke();
   }
   function link(i1,w1,i2,w2){
     ctx.beginPath(); ctx.moveTo(X(i1),Y(w1/1000)); ctx.lineTo(X(i2),Y(w2/1000));
-    ctx.strokeStyle='#3ddc84'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle='#279a52'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
   }
   return {ctx, X, Y, mL, mR, mT, mB, cssW, cssH, ptCross, ptBefore, link};
 }
@@ -625,7 +656,7 @@ function drawEnv(dIdx, addKg){
   const haveZFW = !isNaN(zfw) && !isNaN(lizfw);
 
   if (!haveTOW && !haveZFW){
-    ctx.fillStyle='rgba(143,163,186,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(110,120,140,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
     ctx.fillText('Enter LITOW + ZFW to plot the CG points (LIZFW auto via fuel CG)', mL+(cssW-mL-mR)/2, mT+16);
     document.getElementById('rMargin').textContent='–';
     document.getElementById('rLi').textContent='–';
@@ -815,13 +846,61 @@ function drawEnv2(pts){
   if (!env) return;
   const {ctx, ptCross, link, mL, mR, mT, cssW} = env;
   if (!pts){
-    ctx.fillStyle='rgba(143,163,186,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(110,120,140,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
     ctx.fillText('Complete the sheet to plot ZFM and TOM', mL+(cssW-mL-mR)/2, mT+16);
     return;
   }
   link(pts.LIZFW, pts.ZFM, pts.LITOW, pts.TOM);
   ptCross(pts.LIZFW, pts.ZFM, 'ZFM');
   ptCross(pts.LITOW, pts.TOM, 'TOM');
+}
+
+// ================= PDF / Print =================
+function gv(id){ const v=document.getElementById(id).value; return v===''?'\u2014':v; }
+function gt(id){ return (document.getElementById(id).textContent||'\u2014'); }
+function printSheet(){
+  calcMS();
+  const ps=document.getElementById('printSheet');
+  const zn=['OA 1\u20133','OB 4\u20137','OC 8\u201311','OD 12\u201316','OE 17\u201320','OF 21\u201323'];
+  let zr='';
+  for(let z=0;z<6;z++){
+    zr+='<td>'+(document.getElementById('zA'+z).value||0)+'</td>';
+  }
+  let zc='';
+  for(let z=0;z<6;z++){
+    zc+='<td>'+(document.getElementById('zC'+z).value||0)+'</td>';
+  }
+  let img='';
+  try{ const cv=document.getElementById('env2'); if(cv && cv.width) img='<img src="'+cv.toDataURL('image/png')+'">'; }catch(e){}
+  const now=new Date();
+  ps.innerHTML =
+   '<h1>CRJ900 MANUAL LOAD &amp; TRIM SHEET</h1>'+
+   '<div class="ph">Digital worksheet \u00b7 generated '+now.toLocaleString()+' \u00b7 advisory \u2014 verify per AHM \u00b7 88-seat LOPA</div>'+
+   '<table><tr><th>From</th><th>To</th><th>Flight</th><th>Reg</th><th>Date</th><th>Fleet data</th><th>Crew</th><th>Pantry</th></tr>'+
+   '<tr><td>'+gv('mFrom').toUpperCase()+'</td><td>'+gv('mTo').toUpperCase()+'</td><td>'+gv('mFlt')+'</td><td>'+gv('mRegTxt').toUpperCase()+'</td><td>'+gv('mDate')+'</td><td>'+(document.getElementById('mReg').value||'manual')+'</td><td>'+gv('mCat')+'</td><td>'+gv('mCode')+'</td></tr></table>'+
+   '<div class="sec">Masses</div>'+
+   '<table><tr><th>DOM</th><th>DOI</th><th>TO Fuel</th><th>Trip fuel</th><th>Fuel index</th></tr>'+
+   '<tr><td>'+gv('mDom')+'</td><td>'+gv('mDoi')+'</td><td>'+gv('mTof')+'</td><td>'+gv('mTrip')+'</td><td>'+gt('mFuelIdx')+'</td></tr></table>'+
+   '<div class="sec">Passengers (Adult 84 / Child 35 / Infant 0 kg)</div>'+
+   '<table><tr><th></th><th>'+zn.join('</th><th>')+'</th><th>INF</th><th>Total</th></tr>'+
+   '<tr><th>Adult</th>'+zr+'<td rowspan="2">'+(document.getElementById('mInf').value||0)+'</td><td rowspan="2">'+ (document.getElementById('mPaxTot').value||'\u2014') +'</td></tr>'+
+   '<tr><th>Child</th>'+zc+'</tr></table>'+
+   '<div class="sec">Cargo compartments (kg)</div>'+
+   '<table><tr><th>Hold 1</th><th>Hold 2</th><th>Hold 6</th><th>Total</th></tr>'+
+   '<tr><td>'+(document.getElementById('mW1').value||0)+'</td><td>'+(document.getElementById('mW2').value||0)+'</td><td>'+(document.getElementById('mW6').value||0)+'</td><td>'+((parseInt(document.getElementById('mW1').value)||0)+(parseInt(document.getElementById('mW2').value)||0)+(parseInt(document.getElementById('mW6').value)||0))+'</td></tr></table>'+
+   '<div class="sec">Load calculation</div>'+
+   '<table><tr><th>Operating mass</th><th>Allowed TOM</th><th>Allowed traffic</th><th>Total traffic</th><th>Underload</th></tr>'+
+   '<tr><td>'+gt('oOM')+'</td><td>'+gt('oATOM')+'</td><td>'+gt('oATL')+'</td><td>'+gt('oTTL')+'</td><td>'+gt('oUL')+'</td></tr></table>'+
+   '<table><tr><th>ZFM (max 32092)</th><th>TOM (max 37995)</th><th>LM (max 34065)</th></tr>'+
+   '<tr><td>'+gt('oZFM')+'</td><td>'+gt('oTOM')+'</td><td>'+gt('oLM')+'</td></tr></table>'+
+   '<div class="sec">Balance &amp; trim</div>'+
+   '<table><tr><th>LIZFW</th><th>LITOW</th><th>ZFMAC / TOMAC</th><th>Stab trim F8 / F20</th><th>Margins ZFM \u00b7 TOM</th></tr>'+
+   '<tr><td>'+gt('oLIZFW')+'</td><td>'+gt('oLITOW')+'</td><td>'+gt('oMAC')+'</td><td>'+gt('oTrims')+'</td><td>'+gt('oMargins')+'</td></tr></table>'+
+   img+
+   ((document.getElementById('mMsgs').textContent||'').trim() ? '<div class="bad">\u26a0 '+document.getElementById('mMsgs').textContent.trim()+'</div>' : '')+
+   '<div class="sig"><div>Prepared by: '+gv('mPrep')+'<br><br>Signature</div><div>Commander: '+gv('mCmdr')+'<br><br>Signature &amp; total on board</div></div>'+
+   '<div class="foot">Advisory aid only. Cross-check against AHM tables and the official trim sheet. The signed document is the legal record.</div>';
+  window.print();
 }
 
 // ================= Tabs & wiring =================
@@ -852,5 +931,6 @@ window.addEventListener('load', ()=>{
   calc();
 });
 </script>
+<div id="printSheet"></div>
 </body>
 </html>
