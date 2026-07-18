@@ -37,6 +37,11 @@
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
   input::placeholder{color:#42536b; opacity:1; font-style:italic; font-size:.95rem;}
+  input[type=date]{width:100%; background:var(--panel2); border:1px solid var(--line);
+    border-radius:10px; color:var(--txt); font-family:var(--mono); font-size:1.1rem;
+    padding:11px 6px; text-align:center; appearance:none; -webkit-appearance:none; min-height:48px;}
+  input[type=date]::-webkit-date-and-time-value{text-align:center;}
+  input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.7);}
   input:focus,select:focus{outline:none; border-color:var(--accent);}
   input.bad{border-color:var(--red)!important; color:var(--red)!important;}
   select{font-size:1rem; padding:12px 4px;}
@@ -220,7 +225,11 @@
     <div><label>From</label><input type="text" id="mFrom" placeholder="—" style="text-transform:uppercase"></div>
     <div><label>To</label><input type="text" id="mTo" placeholder="—" style="text-transform:uppercase"></div>
     <div><label>Flight</label><input type="text" id="mFlt" placeholder="—"></div>
-    <div><label>Date</label><input type="text" id="mDate" placeholder="ddmmyy"></div>
+    <div><label>Reg</label><input type="text" id="mRegTxt" placeholder="—" style="text-transform:uppercase"></div>
+  </div>
+  <div style="margin-top:10px">
+    <label>Date</label>
+    <input type="date" id="mDate">
   </div>
 </div>
 
@@ -228,7 +237,7 @@
   <h2>Dry Operating Mass / Index</h2>
   <div class="row3">
     <div>
-      <label>Registration</label>
+      <label>Fleet data</label>
       <select id="mReg"><option value="">manual</option><option value="AC1">AC 1</option><option value="AC2">AC 2</option></select>
     </div>
     <div>
@@ -837,7 +846,11 @@ document.querySelectorAll('#tab2 input').forEach(i=> i.addEventListener('input',
 document.querySelectorAll('#tab2 select').forEach(s=> s.addEventListener('change', fillDomDoi));
 document.getElementById('envDetails').addEventListener('toggle', calc);
 window.addEventListener('resize', ()=>{ calc(); calcMS(); });
-window.addEventListener('load', calc);
+window.addEventListener('load', ()=>{
+  const d=document.getElementById('mDate');
+  if(d && !d.value){ d.value = new Date().toISOString().slice(0,10); }
+  calc();
+});
 </script>
 </body>
 </html>
