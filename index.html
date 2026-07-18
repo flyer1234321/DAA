@@ -302,11 +302,11 @@
       </div>
       <div>
         <label>TOW (kg)</label>
-        <input type="number" id="tow" inputmode="numeric" placeholder="37416">
+        <input type="number" id="tow" inputmode="numeric" value="37416" onfocus="this.select()">
       </div>
       <div>
         <label>Trim (UP)</label>
-        <input type="number" id="trim" inputmode="decimal" step="0.1" placeholder="9.4">
+        <input type="number" id="trim" inputmode="decimal" step="0.1" min="0" max="15" value="9.4" onfocus="this.select()">
       </div>
     </div>
   </div>
@@ -355,7 +355,7 @@
     <div class="grid">
       <div>
         <label>ZFW (kg)</label>
-        <input type="number" id="zfw" inputmode="numeric" placeholder="32616">
+        <input type="number" id="zfw" inputmode="numeric" value="32616" onfocus="this.select()">
       </div>
       <div>
         <label>TOW auto</label>
@@ -363,11 +363,11 @@
       </div>
       <div>
         <label>LIZFW</label>
-        <input type="number" id="lizfw" inputmode="decimal" step="0.1" placeholder="36.2">
+        <input type="number" id="lizfw" inputmode="decimal" step="0.1" value="36.2" onfocus="this.select()">
       </div>
       <div>
         <label>LITOW</label>
-        <input type="number" id="litow" inputmode="decimal" step="0.1" placeholder="34.5">
+        <input type="number" id="litow" inputmode="decimal" step="0.1" value="34.5" onfocus="this.select()">
       </div>
     </div>
     <canvas id="env"></canvas>
@@ -464,8 +464,9 @@
       // ---- weight validation against chart limits ----
       const towEl = document.getElementById('tow');
       const zfwEl = document.getElementById('zfw');
+      const trimEl = document.getElementById('trim');
       const zfwv = val('zfw');
-      let towBad = false, zfwBad = false, badMsg = '';
+      let towBad = false, zfwBad = false, trimBad = false, badMsg = '';
       if (!isNaN(tow)) {
         if (tow + addKg > MTOW) { towBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ TOW ' + (addKg ? '+ bags = ' + Math.round(tow + addKg) + ' kg ' : tow + ' kg ') + 'exceeds MTOW ' + MTOW + ' kg.</div>'; }
         if (tow < MINW) { towBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ TOW below chart minimum ' + MINW + ' kg.</div>'; }
@@ -474,13 +475,17 @@
         if (zfwv + addKg > MZFW) { zfwBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ ZFW ' + (addKg ? '+ bags = ' + Math.round(zfwv + addKg) + ' kg ' : zfwv + ' kg ') + 'exceeds MZFW ' + MZFW + ' kg.</div>'; }
         if (!isNaN(tow) && zfwv > tow) { zfwBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ ZFW greater than TOW — check entries.</div>'; }
       }
+      if (!isNaN(trim)) {
+        if (trim < 0 || trim > 15) { trimBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ Trim ' + trim + ' is outside valid limits (0–15).</div>'; }
+      }
       towEl.className = towBad ? 'bad' : '';
       zfwEl.className = zfwBad ? 'bad' : '';
+      trimEl.className = trimBad ? 'bad' : '';
 
-      if (isNaN(tow) || isNaN(trim) || towBad) {
+      if (isNaN(tow) || isNaN(trim) || towBad || trimBad) {
         resCard.className = 'result na';
-        document.getElementById('newTrim').textContent = towBad ? '⚠' : '–';
-        document.getElementById('deltaTxt').textContent = towBad ? 'Weight outside envelope limits' : 'Enter TOW and loadsheet trim';
+        document.getElementById('newTrim').textContent = (towBad || trimBad) ? '⚠' : '–';
+        document.getElementById('deltaTxt').textContent = (towBad || trimBad) ? 'Input outside valid limits' : 'Enter TOW and loadsheet trim';
         msgs.innerHTML = badMsg;
         drawEnv(dIdx, addKg);
         return;
