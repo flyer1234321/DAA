@@ -120,7 +120,10 @@
 </head>
 <body>
 
-<h1>CRJ900 · Load &amp; Trim</h1>
+<div style="display:flex; align-items:center; justify-content:space-between; margin:4px 0 12px">
+  <h1 style="margin:0">CRJ900 · Load &amp; Trim</h1>
+  <button onclick="clearSaved()" style="background:none; border:1px solid var(--line); border-radius:8px; color:var(--dim); font-size:.72rem; padding:7px 12px; letter-spacing:.5px; cursor:pointer">CLEAR</button>
+</div>
 
 <div class="tabs">
   <button id="tabBtn1" class="on" onclick="showTab(1)">DAA Trim</button>
@@ -278,9 +281,10 @@
 
 <div class="card">
   <h2>Fuel</h2>
-  <div class="row2">
+  <div class="row3">
     <div><label>Take-off fuel (kg)</label><input type="number" id="mTof" inputmode="numeric" placeholder="enter"></div>
     <div><label>Trip fuel (kg)</label><input type="number" id="mTrip" inputmode="numeric" placeholder="enter"></div>
+    <div><label>Taxi fuel (kg)</label><input type="number" id="mTaxi" inputmode="numeric" value="200"></div>
   </div>
   <div class="rrow" style="margin-top:8px; border:none"><span class="k">Fuel index (AHM C5.1)</span><span class="v" id="mFuelIdx">–</span></div>
 </div>
@@ -327,6 +331,7 @@
   <div class="rrow"><span class="k">Underload</span><span class="v" id="oUL">–</span></div>
   <div class="rrow"><span class="k">Zero fuel mass (max 32092)</span><span class="v" id="oZFM">–</span></div>
   <div class="rrow"><span class="k">Take-off mass (max 37995)</span><span class="v" id="oTOM">–</span></div>
+  <div class="rrow"><span class="k">Ramp mass (max 38222)</span><span class="v" id="oRAMP">–</span></div>
   <div class="rrow"><span class="k">Landing mass (max 34065)</span><span class="v" id="oLM">–</span></div>
 </div>
 
@@ -384,9 +389,9 @@ const MACS = [10,15,20,25,30,35];
 const TTAB = { f8:[8.4,7.5,6.7,5.8,5.0,4.1], f20lo:[7.6,6.8,6.0,5.2,4.4,3.6], f20hi:[8.6,7.7,6.8,5.9,5.0,4.1] };
 
 // CG limits for loadsheet — AHM565 C4.2 pax flights / C4.1 positioning (weight kg, index)
-const PAX_FWD = [[20412,38.4],[32092,29.7],[32093,29.1],[33600,27.9],[34065,27.5],[35100,26.7],[37200,27.9],[37995,29.4]];
-const PAX_AFT = [[20412,67.6],[21300,70.1],[23133,72.0],[27216,76.5],[32092,69.3],[33600,66.2],[34065,65.8],[37421,62.9],[37995,54.3]];
-const POS_FWD = [[20412,35.3],[32092,26.6],[32093,26.0],[33600,24.9],[34065,24.5],[35100,23.7],[37200,24.9],[37995,26.4]];
+const PAX_FWD = [[20412,38.4],[32092,29.7],[32093,29.1],[33600,27.9],[34065,27.5],[35100,26.7],[37200,27.9],[37995,29.4],[38222,29.8]];
+const PAX_AFT = [[20412,67.6],[21300,70.1],[23133,72.0],[27216,76.5],[32092,69.3],[33600,66.2],[34065,65.8],[37421,62.9],[37995,54.3],[38222,50.9]];
+const POS_FWD = [[20412,35.3],[32092,26.6],[32093,26.0],[33600,24.9],[34065,24.5],[35100,23.7],[37200,24.9],[37995,26.4],[38222,26.8]];
 const POS_AFT = [[20412,70.7],[21300,73.2],[23100,75.1],[27216,79.6],[32092,72.4],[33600,69.3],[34065,68.3],[37421,66.0],[37995,57.4]];
 
 // AHM565 C5.1 — Effect of fuel: fuel weight (kg) -> index effect
@@ -481,7 +486,7 @@ function bumpTrim(d){
 }
 
 // ================= Envelope base drawing (shared) =================
-const IX_MIN = 15, IX_MAX = 90, WT_MIN = 20, WT_MAX = 38.5;
+const IX_MIN = 15, IX_MAX = 90, WT_MIN = 20, WT_MAX = 39;
 function envBase(cvId, primFwd, primAft, secFwd, secAft){
   const cv = document.getElementById(cvId);
   if (!cv.clientWidth) return null;
@@ -522,21 +527,31 @@ function envBase(cvId, primFwd, primAft, secFwd, secAft){
     ctx.strokeStyle=color; ctx.lineWidth=w; ctx.setLineDash(dash||[]);
     ctx.stroke(); ctx.setLineDash([]);
   }
+  function cap(a, b, color, w, dash){ // close envelope top & bottom edges
+    ctx.beginPath();
+    ctx.moveTo(X(a[0][1]), Y(a[0][0]/1000)); ctx.lineTo(X(b[0][1]), Y(b[0][0]/1000));
+    ctx.moveTo(X(a[a.length-1][1]), Y(a[a.length-1][0]/1000));
+    ctx.lineTo(X(b[b.length-1][1]), Y(b[b.length-1][0]/1000));
+    ctx.strokeStyle=color; ctx.lineWidth=w; ctx.setLineDash(dash||[]);
+    ctx.stroke(); ctx.setLineDash([]);
+  }
   curve(secFwd, '#9aa7c0', 1.5, [5,4]); curve(secAft, '#9aa7c0', 1.5, [5,4]);
+  cap(secFwd, secAft, '#9aa7c0', 1.5, [5,4]);
   curve(primFwd, '#31508f', 2.5);       curve(primAft, '#31508f', 2.5);
+  cap(primFwd, primAft, '#31508f', 2.5);
 
   ctx.font='bold 11px sans-serif'; ctx.fillStyle='#31508f';
   ctx.textAlign='right'; ctx.fillText('FWD LIMIT', X(limIdx(primFwd,29000))-10, Y(29));
   ctx.textAlign='left';  ctx.fillText('AFT LIMIT', X(limIdx(primAft,31000))+10, Y(31));
 
-  function wline(wkg, label){
+  function wline(wkg, label, below){
     const w = wkg/1000;
     ctx.beginPath(); ctx.moveTo(mL,Y(w)); ctx.lineTo(cssW-mR,Y(w));
     ctx.strokeStyle='#d99114'; ctx.lineWidth=1.2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='#d99114'; ctx.textAlign='left'; ctx.font='bold 9.5px sans-serif';
-    ctx.fillText(label+' '+wkg, mL+6, Y(w)-4);
+    ctx.fillText(label+' '+wkg, mL+6, below ? Y(w)+11 : Y(w)-4);
   }
-  wline(MTOW,'MTOW'); wline(MLW,'MLW'); wline(MZFW,'MZFW');
+  wline(MRW,'MRW'); wline(MTOW,'MTOW',true); wline(MLW,'MLW'); wline(MZFW,'MZFW');
 
   function ptCross(idx, wkg, label){
     const x=X(idx), y=Y(wkg/1000), r=9;
@@ -657,7 +672,7 @@ function drawEnv(dIdx, addKg){
 
   if (!haveTOW && !haveZFW){
     ctx.fillStyle='rgba(110,120,140,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('Enter LITOW + ZFW to plot the CG points (LIZFW auto via fuel CG)', mL+(cssW-mL-mR)/2, mT+16);
+    ctx.fillText('Enter LITOW + ZFW to plot the CG points (LIZFW auto via fuel CG)', mL+(cssW-mL-mR)/2, cssH-mB-12);
     document.getElementById('rMargin').textContent='–';
     document.getElementById('rLi').textContent='–';
     return;
@@ -758,7 +773,7 @@ function calcMS(){
   function setv(id, txt, cls){ const e=document.getElementById(id); e.textContent=txt; e.className='v'+(cls?' '+cls:''); }
 
   if (isNaN(dom) || isNaN(doi) || isNaN(tof) || isNaN(trip)){
-    ['oOM','oATOM','oATL','oTTL','oUL','oZFM','oTOM','oLM','oLIZFW','oLITOW','oMAC','oTrims','oMargins'].forEach(id=>setv(id,'–'));
+    ['oOM','oATOM','oATL','oTTL','oUL','oZFM','oTOM','oRAMP','oLM','oLIZFW','oLITOW','oMAC','oTrims','oMargins'].forEach(id=>setv(id,'–'));
     document.getElementById('mResCard').className='result na';
     document.getElementById('mTrimOut').textContent='–';
     document.getElementById('mTrimSub').textContent='Enter DOM, DOI and fuel';
@@ -775,6 +790,8 @@ function calcMS(){
   const ZFM = dom + TTL;
   const TOM = ZFM + tof;
   const LM = TOM - trip;
+  const taxi = isNaN(val('mTaxi')) ? 0 : val('mTaxi');
+  const RAMP = TOM + taxi;
 
   setv('oOM', OM + ' kg');
   setv('oATOM', aTOM + ' kg');
@@ -783,11 +800,14 @@ function calcMS(){
   setv('oUL', UL + ' kg', UL<0?'over':'ok');
   setv('oZFM', ZFM + ' kg', ZFM>MZFW?'over':'ok');
   setv('oTOM', TOM + ' kg', TOM>MTOW?'over':'ok');
+  setv('oRAMP', RAMP + ' kg', RAMP>MRW?'over':'ok');
   setv('oLM', LM + ' kg', LM>MLW?'over':'ok');
 
   if (UL < 0) alerts += '<div class="alert">⚠ Overload: traffic load exceeds allowed by ' + (-UL) + ' kg.</div>';
   if (ZFM > MZFW) alerts += '<div class="alert">⚠ ZFM exceeds MZFM ' + MZFW + ' kg.</div>';
   if (TOM > MTOW) alerts += '<div class="alert">⚠ TOM exceeds MTOM ' + MTOW + ' kg.</div>';
+  if (RAMP > MRW) alerts += '<div class="alert">⚠ Ramp mass ' + RAMP + ' kg exceeds MRW ' + MRW + ' kg.</div>';
+  if (tof + taxi > FUEL_MAX) alerts += '<div class="alert">⚠ Ramp fuel (TOF + taxi) ' + Math.round(tof+taxi) + ' kg exceeds max fuel ' + FUEL_MAX + ' kg.</div>';
   if (LM > MLW) alerts += '<div class="alert">⚠ LM exceeds MLM ' + MLW + ' kg.</div>';
 
   // Balance
@@ -836,7 +856,9 @@ function calcMS(){
     'TOMAC <b>' + tmac.toFixed(1) + ' %</b> · LITOW <b>' + LITOW.toFixed(1) + '</b> · TOM <b>' + TOM + ' kg</b>' + f20txt;
   msgs.innerHTML = alerts;
 
-  drawEnv2({LIZFW, ZFM, LITOW, TOM, usePax});
+  const rampFuel = tof + taxi;
+  const LIRAMP = (rampFuel>=0 && rampFuel<=FUEL_MAX) ? LIZFW + fuelIndex(rampFuel) : null;
+  drawEnv2({LIZFW, ZFM, LITOW, TOM, RAMP, LIRAMP, usePax});
 }
 
 function drawEnv2(pts){
@@ -847,10 +869,16 @@ function drawEnv2(pts){
   const {ctx, ptCross, link, mL, mR, mT, cssW} = env;
   if (!pts){
     ctx.fillStyle='rgba(110,120,140,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('Complete the sheet to plot ZFM and TOM', mL+(cssW-mL-mR)/2, mT+16);
+    ctx.fillText('Complete the sheet to plot ZFM and TOM', mL+(cssW-mL-mR)/2, cssH-mB-12);
     return;
   }
   link(pts.LIZFW, pts.ZFM, pts.LITOW, pts.TOM);
+  if (pts.RAMP && pts.LIRAMP != null && pts.RAMP > pts.TOM){
+    env.link(pts.LITOW, pts.TOM, pts.LIRAMP, pts.RAMP);
+    env.ptBefore(pts.LIRAMP, pts.RAMP);
+    ctx.fillStyle='#5b708f'; ctx.font='bold 10px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('RAMP', env.X(pts.LIRAMP)+10, env.Y(pts.RAMP/1000)+4);
+  }
   ptCross(pts.LIZFW, pts.ZFM, 'ZFM');
   ptCross(pts.LITOW, pts.TOM, 'TOM');
 }
@@ -879,8 +907,8 @@ function printSheet(){
    '<table><tr><th>From</th><th>To</th><th>Flight</th><th>Reg</th><th>Date</th><th>Fleet data</th><th>Crew</th><th>Pantry</th></tr>'+
    '<tr><td>'+gv('mFrom').toUpperCase()+'</td><td>'+gv('mTo').toUpperCase()+'</td><td>'+gv('mFlt')+'</td><td>'+gv('mRegTxt').toUpperCase()+'</td><td>'+gv('mDate')+'</td><td>'+(document.getElementById('mReg').value||'manual')+'</td><td>'+gv('mCat')+'</td><td>'+gv('mCode')+'</td></tr></table>'+
    '<div class="sec">Masses</div>'+
-   '<table><tr><th>DOM</th><th>DOI</th><th>TO Fuel</th><th>Trip fuel</th><th>Fuel index</th></tr>'+
-   '<tr><td>'+gv('mDom')+'</td><td>'+gv('mDoi')+'</td><td>'+gv('mTof')+'</td><td>'+gv('mTrip')+'</td><td>'+gt('mFuelIdx')+'</td></tr></table>'+
+   '<table><tr><th>DOM</th><th>DOI</th><th>TO Fuel</th><th>Trip fuel</th><th>Taxi fuel</th><th>Fuel index</th></tr>'+
+   '<tr><td>'+gv('mDom')+'</td><td>'+gv('mDoi')+'</td><td>'+gv('mTof')+'</td><td>'+gv('mTrip')+'</td><td>'+gv('mTaxi')+'</td><td>'+gt('mFuelIdx')+'</td></tr></table>'+
    '<div class="sec">Passengers (Adult 84 / Child 35 / Infant 0 kg)</div>'+
    '<table><tr><th></th><th>'+zn.join('</th><th>')+'</th><th>INF</th><th>Total</th></tr>'+
    '<tr><th>Adult</th>'+zr+'<td rowspan="2">'+(document.getElementById('mInf').value||0)+'</td><td rowspan="2">'+ (document.getElementById('mPaxTot').value||'\u2014') +'</td></tr>'+
@@ -891,8 +919,8 @@ function printSheet(){
    '<div class="sec">Load calculation</div>'+
    '<table><tr><th>Operating mass</th><th>Allowed TOM</th><th>Allowed traffic</th><th>Total traffic</th><th>Underload</th></tr>'+
    '<tr><td>'+gt('oOM')+'</td><td>'+gt('oATOM')+'</td><td>'+gt('oATL')+'</td><td>'+gt('oTTL')+'</td><td>'+gt('oUL')+'</td></tr></table>'+
-   '<table><tr><th>ZFM (max 32092)</th><th>TOM (max 37995)</th><th>LM (max 34065)</th></tr>'+
-   '<tr><td>'+gt('oZFM')+'</td><td>'+gt('oTOM')+'</td><td>'+gt('oLM')+'</td></tr></table>'+
+   '<table><tr><th>ZFM (max 32092)</th><th>TOM (max 37995)</th><th>Ramp (max 38222)</th><th>LM (max 34065)</th></tr>'+
+   '<tr><td>'+gt('oZFM')+'</td><td>'+gt('oTOM')+'</td><td>'+gt('oRAMP')+'</td><td>'+gt('oLM')+'</td></tr></table>'+
    '<div class="sec">Balance &amp; trim</div>'+
    '<table><tr><th>LIZFW</th><th>LITOW</th><th>ZFMAC / TOMAC</th><th>Stab trim F8 / F20</th><th>Margins ZFM \u00b7 TOM</th></tr>'+
    '<tr><td>'+gt('oLIZFW')+'</td><td>'+gt('oLITOW')+'</td><td>'+gt('oMAC')+'</td><td>'+gt('oTrims')+'</td><td>'+gt('oMargins')+'</td></tr></table>'+
@@ -901,6 +929,42 @@ function printSheet(){
    '<div class="sig"><div>Prepared by: '+gv('mPrep')+'<br><br>Signature</div><div>Commander: '+gv('mCmdr')+'<br><br>Signature &amp; total on board</div></div>'+
    '<div class="foot">Advisory aid only. Cross-check against AHM tables and the official trim sheet. The signed document is the legal record.</div>';
   window.print();
+}
+
+// ================= Persistence (auto-save / restore) =================
+const LS_KEY='crj900_lt_v1';
+function saveState(){
+  try{
+    const st={flap};
+    document.querySelectorAll('input[id],select[id]').forEach(e=>{
+      if(!e.disabled) st[e.id]=e.value;
+    });
+    localStorage.setItem(LS_KEY, JSON.stringify(st));
+  }catch(e){}
+}
+function restoreState(){
+  try{
+    const st=JSON.parse(localStorage.getItem(LS_KEY)||'null');
+    if(!st) return;
+    for(const k in st){
+      if(k==='flap'){ 
+        flap=st[k];
+        document.querySelectorAll('#flapSeg button').forEach(b=>{
+          b.classList.toggle('on', parseInt(b.dataset.f)===flap);
+        });
+        continue;
+      }
+      const e=document.getElementById(k);
+      if(e && !e.disabled) e.value=st[k];
+    }
+  }catch(e){}
+}
+function clearSaved(){
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  location.reload();
+}
+if ('serviceWorker' in navigator){
+  try{ navigator.serviceWorker.register('sw.js'); }catch(e){}
 }
 
 // ================= Tabs & wiring =================
@@ -918,17 +982,20 @@ document.querySelectorAll('#flapSeg button').forEach(b=>{
     document.querySelectorAll('#flapSeg button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
     calc();
+    saveState();
   };
 });
-document.querySelectorAll('#tab1 input').forEach(i=> i.addEventListener('input', calc));
-document.querySelectorAll('#tab2 input').forEach(i=> i.addEventListener('input', calcMS));
-document.querySelectorAll('#tab2 select').forEach(s=> s.addEventListener('change', fillDomDoi));
+document.querySelectorAll('#tab1 input').forEach(i=> i.addEventListener('input', ()=>{calc(); saveState();}));
+document.querySelectorAll('#tab2 input').forEach(i=> i.addEventListener('input', ()=>{calcMS(); saveState();}));
+document.querySelectorAll('#tab2 select').forEach(s=> s.addEventListener('change', ()=>{fillDomDoi(); saveState();}));
 document.getElementById('envDetails').addEventListener('toggle', calc);
 window.addEventListener('resize', ()=>{ calc(); calcMS(); });
 window.addEventListener('load', ()=>{
+  restoreState();
   const d=document.getElementById('mDate');
   if(d && !d.value){ d.value = new Date().toISOString().slice(0,10); }
   calc();
+  calcMS();
 });
 </script>
 <div id="printSheet"></div>
