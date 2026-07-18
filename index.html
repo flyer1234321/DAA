@@ -232,12 +232,12 @@
       <select id="mReg"><option value="">manual</option><option value="AC1">AC 1</option><option value="AC2">AC 2</option></select>
     </div>
     <div>
-      <label>Route code</label>
-      <select id="mCode"><option>P</option><option>DN</option><option>DD</option><option>DS</option><option>I</option><option selected>E</option></select>
+      <label>Crew</label>
+      <select id="mCat"><option>2/0</option><option>2/1</option><option selected>2/2</option><option>2/3</option><option>3/0</option><option>3/1</option><option>3/2</option><option>3/3</option></select>
     </div>
     <div>
-      <label>Catering</label>
-      <select id="mCat"><option>2/0</option><option>2/1</option><option selected>2/2</option><option>2/3</option><option>3/0</option><option>3/1</option><option>3/2</option><option>3/3</option></select>
+      <label>Pantry</label>
+      <select id="mCode"><option>P</option><option>DN</option><option>DD</option><option>DS</option><option>I</option><option selected>E</option></select>
     </div>
   </div>
   <div class="row2" style="margin-top:10px">
@@ -786,7 +786,12 @@ function calcMS(){
   document.getElementById('mResCard').className = ok ? 'result' : 'result na';
   const f20txt = (TOM > W_LO && TOM < W_HI) ? ' (interpolated)' : '';
   document.getElementById('mTrimOut').innerHTML =
-    (tmac>=10 && tmac<=35 && ok ? '' : '⚠ ') + 'F8 ' + t8.toFixed(1) + ' · F20 ' + t20.toFixed(1);
+    '<div style="display:flex; justify-content:center; gap:34px; align-items:flex-end">' +
+    '<div><div style="font-size:.8rem; color:var(--dim); letter-spacing:1px">FLAPS 8</div>' +
+    '<div style="font-size:2.9rem">' + t8.toFixed(1) + '</div></div>' +
+    '<div><div style="font-size:.8rem; color:var(--dim); letter-spacing:1px">FLAPS 20</div>' +
+    '<div style="font-size:2.9rem">' + t20.toFixed(1) + '</div></div></div>' +
+    ((tmac>=10 && tmac<=35 && ok) ? '' : '<div style="font-size:1rem; color:var(--red); margin-top:4px">\u26a0 check warnings</div>');
   document.getElementById('mTrimSub').innerHTML =
     'TOMAC <b>' + tmac.toFixed(1) + ' %</b> · LITOW <b>' + LITOW.toFixed(1) + '</b> · TOM <b>' + TOM + ' kg</b>' + f20txt;
   msgs.innerHTML = alerts;
