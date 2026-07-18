@@ -358,7 +358,7 @@
     <div class="grid">
       <div>
         <label>ZFW (kg)</label>
-        <input type="number" id="zfw" inputmode="numeric" value="32616" onfocus="this.select()">
+        <input type="number" id="zfw" inputmode="numeric" value="30200" onfocus="this.select()">
       </div>
       <div>
         <label>TOW auto</label>
@@ -366,11 +366,11 @@
       </div>
       <div>
         <label>LIZFW</label>
-        <input type="number" id="lizfw" inputmode="decimal" step="0.1" value="36.2" onfocus="this.select()">
+        <input type="text" id="lizfw" inputmode="decimal" placeholder="auto" onfocus="this.select()">
       </div>
       <div>
         <label>LITOW</label>
-        <input type="number" id="litow" inputmode="decimal" step="0.1" value="34.5" onfocus="this.select()">
+        <input type="text" id="litow" inputmode="decimal" placeholder="auto" onfocus="this.select()">
       </div>
     </div>
     <canvas id="env"></canvas>
@@ -402,10 +402,24 @@
       h6: [0, 0.7, 1.5, 2.2, 3.0, 4.5, 6.0, 8.9, 11.9]
     };
     const W_LO = 24947, W_HI = 26308;
-    const IDX_C = 460.85, MAC_M = 3.38, BAG_KG = 8;
+    const IDX_C = 460.85, MAC_M = 3.3829, BAG_KG = 8;
+    const LEMAC = 21.161, REF_STA = 21.844, IDX_K = 50;
     const MTOW = 37995, MLW = 34065, MZFW = 32092, MINW = 20400;
     // trim units per %MAC (table average slopes)
     const SLOPE_F8 = 0.172, SLOPE_F20_HI = 0.18, SLOPE_F20_LO = 0.16;
+
+    const FUEL_TBL = [
+      [0, 0.0], [200, -0.3], [400, -0.6], [600, -0.8], [800, -1.1], [1000, -1.3],
+      [1200, -1.6], [1400, -1.7], [1600, -1.9], [1800, -2.1], [2000, -2.2],
+      [2200, -2.3], [2400, -2.4], [2600, -2.5], [2800, -2.5], [3000, -2.6],
+      [3200, -2.6], [3400, -2.5], [3600, -2.6], [3800, -2.5], [4000, -2.4],
+      [4200, -2.3], [4400, -2.2], [4600, -2.0], [4800, -1.8], [5000, -1.6],
+      [5200, -1.4], [5400, -1.1], [5600, -0.8], [5800, -0.4], [6000, -0.1],
+      [6200, 0.4], [6400, 0.8], [6600, 1.4], [6797, 1.9], [6800, 1.9],
+      [7000, 1.5], [7200, 1.2], [7400, 1.0], [7600, 0.7], [7800, 0.6],
+      [8000, 0.3], [8200, 0.1], [8400, -0.2], [8600, -0.5], [8800, -0.8],
+      [8888, -0.9]
+    ];
 
     const ENV = {
       fwd_full: [[20.4, 35.0], [21.5, 33.7], [24.0, 31.3], [27.0, 29.2], [30.0, 27.6], [32.1, 26.8], [35.2, 25.9], [37.0, 26.8], [38.1, 28.3]],
@@ -424,9 +438,9 @@
       document.getElementById('h1').value = '0';
       document.getElementById('h2').value = '0';
       document.getElementById('h6').value = '0';
-      document.getElementById('zfw').value = '32616';
-      document.getElementById('lizfw').value = '36.2';
-      document.getElementById('litow').value = '34.5';
+      document.getElementById('zfw').value = '30200';
+      document.getElementById('lizfw').value = '';
+      document.getElementById('litow').value = '';
       flap = 20;
       document.querySelectorAll('#flapSeg button').forEach(x => {
         if (x.dataset.f === "20") x.classList.add('on');
@@ -454,6 +468,17 @@
       if (w >= W_HI) return SLOPE_F20_HI;
       return SLOPE_F20_LO + (SLOPE_F20_HI - SLOPE_F20_LO) * (w - W_LO) / (W_HI - W_LO);
     }
+    function trimAt10(w) {
+      if (flap === 8) return 8.4;
+      if (w <= W_LO) return 7.6;
+      if (w >= W_HI) return 8.6;
+      return 7.6 + (8.6 - 7.6) * (w - W_LO) / (W_HI - W_LO);
+    }
+    function macToIndex(mac, w) {
+      const cg = (mac / 100 * MAC_M) + LEMAC;
+      return (w * (cg - REF_STA)) / IDX_C + IDX_K;
+    }
+    function fuelIndex(w) { return interp(FUEL_TBL.map(p => p[0]), FUEL_TBL.map(p => p[1]), w); }
     function bump(id, d) {
       const el = document.getElementById(id);
       el.value = Math.max(0, (parseInt(el.value) || 0) + d);
@@ -463,13 +488,33 @@
     function val(id) {
       const el = document.getElementById(id);
       let v = el.value;
-      if (!v && el.placeholder) v = el.placeholder;
-      if (!v) return NaN;
+      if (!v && el.placeholder && el.placeholder !== 'auto' && el.placeholder !== 'from above') v = el.placeholder;
+      if (!v || isNaN(parseFloat(v.replace(',', '.')))) return NaN;
       return parseFloat(v.replace(',', '.'));
     }
 
     function calc() {
       const tow = val('tow'), trim = val('trim');
+      const zfwv = val('zfw');
+
+      // Auto calculate LI based on Trim
+      if (!isNaN(tow) && !isNaN(trim)) {
+        const t10 = trimAt10(tow);
+        const slp = slope(tow);
+        const mac = 10 + (t10 - trim) / slp;
+        const autoLi = macToIndex(mac, tow);
+        document.getElementById('litow').placeholder = autoLi.toFixed(1);
+        if (!isNaN(zfwv) && tow >= zfwv) {
+          const autoLizfw = autoLi - fuelIndex(tow - zfwv);
+          document.getElementById('lizfw').placeholder = autoLizfw.toFixed(1);
+        } else {
+          document.getElementById('lizfw').placeholder = "auto";
+        }
+      } else {
+        document.getElementById('litow').placeholder = "auto";
+        document.getElementById('lizfw').placeholder = "auto";
+      }
+
       const n1 = parseInt(document.getElementById('h1').value) || 0;
       const n2 = parseInt(document.getElementById('h2').value) || 0;
       const n6 = parseInt(document.getElementById('h6').value) || 0;
@@ -491,7 +536,6 @@
       const towEl = document.getElementById('tow');
       const zfwEl = document.getElementById('zfw');
       const trimEl = document.getElementById('trim');
-      const zfwv = val('zfw');
       let towBad = false, zfwBad = false, trimBad = false, badMsg = '';
       if (!isNaN(tow)) {
         if (tow + addKg > MTOW) { towBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ TOW ' + (addKg ? '+ bags = ' + Math.round(tow + addKg) + ' kg ' : tow + ' kg ') + 'exceeds MTOW ' + MTOW + ' kg.</div>'; }
