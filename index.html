@@ -440,7 +440,13 @@
       calc();
     }
     function fmt(x, d = 1, sign = false) { return (sign && x > 0 ? '+' : '') + x.toFixed(d); }
-    function val(id) { return parseFloat(document.getElementById(id).value); }
+    function val(id) {
+      const el = document.getElementById(id);
+      let v = el.value;
+      if (!v && el.placeholder) v = el.placeholder;
+      if (!v) return NaN;
+      return parseFloat(v.replace(',', '.'));
+    }
 
     function calc() {
       const tow = val('tow'), trim = val('trim');
