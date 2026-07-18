@@ -1,733 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>CRJ900 DAA Trim</title>
-  <style>
-    :root {
-      --bg: #0d1420;
-      --panel: #16202f;
-      --panel2: #1c2939;
-      --line: #2a3a50;
-      --txt: #e8eef6;
-      --dim: #8fa3ba;
-      --accent: #4db8ff;
-      --green: #3ddc84;
-      --amber: #ffb347;
-      --red: #ff5c5c;
-      --mono: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      margin: 0 auto;
-      background: var(--bg);
-      color: var(--txt);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      padding: 14px;
-      max-width: 600px;
-    }
-
-    h1 {
-      font-size: 1.1rem;
-      margin: 4px 0 12px;
-      letter-spacing: .5px;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-
-    .row3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-    }
-
-    label {
-      display: block;
-      font-size: .72rem;
-      color: var(--dim);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-      text-align: center;
-    }
-
-    input[type=number] {
-      width: 100%;
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      color: var(--txt);
-      font-family: var(--mono);
-      font-size: 1.35rem;
-      padding: 12px 6px;
-      text-align: center;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    input.bad {
-      border-color: var(--red);
-      color: var(--red);
-    }
-
-    .seg {
-      display: flex;
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .seg button {
-      flex: 1;
-      background: none;
-      border: none;
-      color: var(--dim);
-      font-size: 1.35rem;
-      padding: 12px 0;
-      cursor: pointer;
-      font-family: var(--mono);
-    }
-
-    .seg button.on {
-      background: var(--accent);
-      color: #04121f;
-      font-weight: 700;
-    }
-
-    .stepper {
-      display: flex;
-      align-items: center;
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .stepper button {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 1.7rem;
-      width: 48px;
-      padding: 10px 0;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .stepper button:active {
-      background: var(--line);
-    }
-
-    .stepper input {
-      border: none;
-      background: none;
-      flex: 1;
-      font-size: 1.35rem;
-      padding: 12px 0;
-    }
-
-    .result {
-      background: linear-gradient(160deg, #122418, #0f1a28);
-      border: 2px solid var(--green);
-      border-radius: 16px;
-      padding: 20px 16px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-
-    .result.na {
-      border-color: var(--line);
-      background: var(--panel);
-    }
-
-    .newtrim {
-      font-family: var(--mono);
-      font-size: 4rem;
-      font-weight: 700;
-      color: var(--green);
-      line-height: 1;
-    }
-
-    .newtrim small {
-      font-size: 1.4rem;
-      color: var(--dim);
-      font-weight: 400;
-    }
-
-    .lbl {
-      font-size: .75rem;
-      color: var(--dim);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 6px;
-    }
-
-    .delta {
-      font-family: var(--mono);
-      font-size: 1rem;
-      color: var(--dim);
-      margin-top: 8px;
-    }
-
-    .delta b {
-      color: var(--txt);
-    }
-
-    .warn {
-      background: #33230e;
-      border: 1px solid var(--amber);
-      color: var(--amber);
-      border-radius: 10px;
-      padding: 10px;
-      font-size: .85rem;
-      margin-top: 10px;
-      text-align: left;
-    }
-
-    details {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 0 14px;
-      margin-bottom: 12px;
-    }
-
-    summary {
-      padding: 13px 0;
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--accent);
-      cursor: pointer;
-      outline: none;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .rrow {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--line);
-      font-size: .85rem;
-    }
-
-    .rrow .k {
-      color: var(--dim);
-    }
-
-    .rrow .v {
-      font-family: var(--mono);
-    }
-
-    .disc {
-      font-size: .66rem;
-      color: var(--dim);
-      line-height: 1.5;
-      margin: 6px 2px 20px;
-    }
-
-    canvas {
-      width: 100%;
-      height: 460px;
-      border-radius: 10px;
-      background: #0a1019;
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      font-size: .68rem;
-      color: var(--dim);
-      margin-bottom: 12px;
-    }
-
-    .idx {
-      font-family: var(--mono);
-      font-size: .72rem;
-      color: var(--dim);
-      text-align: center;
-      margin-top: 4px;
-    }
-
-    .neg {
-      color: var(--red) !important;
-    }
-
-    .pos {
-      color: var(--green);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CRJ900 DAA Trim</title>
+<style>
+  :root{
+    --bg:#0d1420; --panel:#16202f; --panel2:#1c2939; --line:#2a3a50;
+    --txt:#e8eef6; --dim:#8fa3ba; --accent:#4db8ff; --green:#3ddc84;
+    --amber:#ffb347; --red:#ff5c5c; --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0 auto; background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    padding:14px; max-width:600px;}
+  h1{font-size:1.1rem; margin:4px 0 12px; letter-spacing:.5px;}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:14px; margin-bottom:12px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
+  label{display:block; font-size:.72rem; color:var(--dim); margin-bottom:5px;
+    text-transform:uppercase; letter-spacing:.5px; text-align:center;}
+  input[type=number]{width:100%; background:var(--panel2); border:1px solid var(--line);
+    border-radius:10px; color:var(--txt); font-family:var(--mono); font-size:1.35rem;
+    padding:12px 6px; text-align:center; appearance:textfield; -moz-appearance:textfield;}
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
+  input::placeholder{color:#42536b; opacity:1; font-style:italic; font-size:1rem;}
+  input:focus{outline:none; border-color:var(--accent);}
+  input.bad{border-color:var(--red); color:var(--red);}
+  .seg{display:flex; background:var(--panel2); border:1px solid var(--line);
+    border-radius:10px; overflow:hidden;}
+  .seg button{flex:1; background:none; border:none; color:var(--dim); font-size:1.35rem;
+    padding:12px 0; cursor:pointer; font-family:var(--mono);}
+  .seg button.on{background:var(--accent); color:#04121f; font-weight:700;}
+  .stepper{display:flex; align-items:center; background:var(--panel2);
+    border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .stepper.bad{border-color:var(--red);}
+  .stepper.bad input{color:var(--red);}
+  .stepper button{background:none; border:none; color:var(--accent); font-size:1.7rem;
+    width:46px; padding:10px 0; cursor:pointer; user-select:none; flex:none;}
+  .stepper button:active{background:var(--line);}
+  .stepper input{border:none; background:none; flex:1; font-size:1.35rem; padding:12px 0; min-width:0;}
+  .result{background:linear-gradient(160deg,#122418,#0f1a28); border:2px solid var(--green);
+    border-radius:16px; padding:20px 16px; margin-bottom:12px; text-align:center;}
+  .result.na{border-color:var(--line); background:var(--panel);}
+  .newtrim{font-family:var(--mono); font-size:4rem; font-weight:700; color:var(--green); line-height:1;}
+  .newtrim small{font-size:1.4rem; color:var(--dim); font-weight:400;}
+  .lbl{font-size:.75rem; color:var(--dim); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px;}
+  .delta{font-family:var(--mono); font-size:1rem; color:var(--dim); margin-top:8px;}
+  .delta b{color:var(--txt);}
+  .warn{background:#33230e; border:1px solid var(--amber); color:var(--amber);
+    border-radius:10px; padding:10px; font-size:.85rem; margin-top:10px; text-align:left;}
+  .alert{background:#331414; border:1px solid var(--red); color:var(--red);
+    border-radius:10px; padding:10px; font-size:.85rem; margin-top:10px; text-align:left;}
+  details{background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:0 14px; margin-bottom:12px;}
+  summary{padding:13px 0; font-size:.8rem; text-transform:uppercase; letter-spacing:1px;
+    color:var(--accent); cursor:pointer; outline:none;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  .rrow{display:flex; justify-content:space-between; padding:6px 0;
+    border-bottom:1px solid var(--line); font-size:.85rem;}
+  .rrow .k{color:var(--dim);}
+  .rrow .v{font-family:var(--mono);}
+  .disc{font-size:.66rem; color:var(--dim); line-height:1.5; margin:6px 2px 20px;}
+  canvas{width:100%; height:460px; border-radius:10px; background:#0a1019; display:block; margin-bottom:6px;}
+  .legend{display:flex; flex-wrap:wrap; gap:10px; font-size:.68rem; color:var(--dim); margin-bottom:12px;}
+  .idx{font-family:var(--mono); font-size:.72rem; color:var(--dim); text-align:center; margin-top:4px;}
+  .neg{color:var(--red)!important;} .pos{color:var(--green);}
+</style>
 </head>
-
 <body>
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-    <h1 style="margin:0;">CRJ900 · DAA Trim Correction</h1>
-    <button onclick="resetAll()" style="background:var(--line); color:var(--txt); border:none; padding:6px 12px; border-radius:6px; font-size:0.75rem; font-weight:bold; cursor:pointer;">RESET</button>
-  </div>
+<h1>CRJ900 · DAA Trim Correction</h1>
 
-  <div class="card">
-    <div class="row3">
-      <div>
-        <label>Flaps</label>
-        <div class="seg" id="flapSeg">
-          <button data-f="8">8</button>
-          <button data-f="20" class="on">20</button>
-        </div>
+<div class="card">
+  <div class="row3">
+    <div>
+      <label>Flaps</label>
+      <div class="seg" id="flapSeg">
+        <button data-f="8">8</button>
+        <button data-f="20" class="on">20</button>
       </div>
-      <div>
-        <label>TOW (kg)</label>
-        <input type="number" id="tow" inputmode="numeric" value="35000" onfocus="this.select()">
-      </div>
-      <div>
-        <label>Trim (UP)</label>
-        <input type="number" id="trim" inputmode="decimal" step="0.1" min="0" max="15" value="6.5" onfocus="this.select()">
+    </div>
+    <div>
+      <label>TOW (kg)</label>
+      <input type="number" id="tow" inputmode="numeric" placeholder="enter">
+    </div>
+    <div>
+      <label>Trim (UP)</label>
+      <div class="stepper" id="trimStep">
+        <button onclick="bumpTrim(-1)">−</button>
+        <input type="number" id="trim" inputmode="decimal" step="0.1" placeholder="enter">
+        <button onclick="bumpTrim(1)">+</button>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="card">
-    <div class="row3">
-      <div>
-        <label>Hold 1</label>
-        <div class="stepper">
-          <button onclick="bump('h1',-1)">−</button>
-          <input type="number" id="h1" inputmode="numeric" value="0" min="0">
-          <button onclick="bump('h1',1)">+</button>
-        </div>
-        <div class="idx" id="i1">ΔI 0.0</div>
+<div class="card">
+  <div class="row3">
+    <div>
+      <label>Hold 1</label>
+      <div class="stepper">
+        <button onclick="bump('h1',-1)">−</button>
+        <input type="number" id="h1" inputmode="numeric" value="0" min="0">
+        <button onclick="bump('h1',1)">+</button>
       </div>
-      <div>
-        <label>Hold 2</label>
-        <div class="stepper">
-          <button onclick="bump('h2',-1)">−</button>
-          <input type="number" id="h2" inputmode="numeric" value="0" min="0">
-          <button onclick="bump('h2',1)">+</button>
-        </div>
-        <div class="idx" id="i2">ΔI 0.0</div>
+      <div class="idx" id="i1">ΔI 0.0</div>
+    </div>
+    <div>
+      <label>Hold 2</label>
+      <div class="stepper">
+        <button onclick="bump('h2',-1)">−</button>
+        <input type="number" id="h2" inputmode="numeric" value="0" min="0">
+        <button onclick="bump('h2',1)">+</button>
       </div>
-      <div>
-        <label>Hold 6</label>
-        <div class="stepper">
-          <button onclick="bump('h6',-1)">−</button>
-          <input type="number" id="h6" inputmode="numeric" value="0" min="0">
-          <button onclick="bump('h6',1)">+</button>
-        </div>
-        <div class="idx" id="i6">ΔI 0.0</div>
+      <div class="idx" id="i2">ΔI 0.0</div>
+    </div>
+    <div>
+      <label>Hold 6</label>
+      <div class="stepper">
+        <button onclick="bump('h6',-1)">−</button>
+        <input type="number" id="h6" inputmode="numeric" value="0" min="0">
+        <button onclick="bump('h6',1)">+</button>
       </div>
+      <div class="idx" id="i6">ΔI 0.0</div>
     </div>
   </div>
+</div>
 
-  <div class="result na" id="resCard">
-    <div class="lbl">New stab trim</div>
-    <div class="newtrim" id="newTrim">–</div>
-    <div class="delta" id="deltaTxt">Enter TOW and loadsheet trim</div>
-    <div id="msgs"></div>
-  </div>
+<div class="result na" id="resCard">
+  <div class="lbl">New stab trim</div>
+  <div class="newtrim" id="newTrim">–</div>
+  <div class="delta" id="deltaTxt">Enter TOW and loadsheet trim</div>
+  <div id="msgs"></div>
+</div>
 
-  <details id="envDetails">
-    <summary>Envelope check (optional)</summary>
-    <div class="grid">
-      <div>
-        <label>ZFW (kg)</label>
-        <input type="number" id="zfw" inputmode="numeric" value="30200" onfocus="this.select()">
-      </div>
-      <div>
-        <label>TOW auto</label>
-        <input type="number" id="towDisp" disabled placeholder="from above">
-      </div>
-      <div>
-        <label>LIZFW</label>
-        <input type="text" id="lizfw" inputmode="decimal" placeholder="auto" onfocus="this.select()">
-      </div>
-      <div>
-        <label>LITOW</label>
-        <input type="text" id="litow" inputmode="decimal" placeholder="auto" onfocus="this.select()">
-      </div>
+<details id="envDetails">
+  <summary>Envelope check (optional)</summary>
+  <div class="grid">
+    <div>
+      <label>LITOW</label>
+      <input type="number" id="litow" inputmode="decimal" step="0.1" placeholder="enter">
     </div>
-    <canvas id="env"></canvas>
-    <div class="legend">
-      <span>━ T/O &amp; LDG limit (pax full/empty)</span>
-      <span>╌ pax not full · in-flight</span>
-      <span>○ before → <b style="color:var(--green)">✕</b> after DAA (CG)</span>
+    <div>
+      <label>LIZFW</label>
+      <input type="number" id="lizfw" inputmode="decimal" step="0.1" placeholder="enter">
     </div>
-    <div class="rrow"><span class="k">Corrected LIZFW / LITOW</span><span class="v" id="rLi">–</span></div>
-    <div class="rrow" style="border:none; margin-bottom:8px"><span class="k">Margin to FWD / AFT limit @ TOW</span><span
-        class="v" id="rMargin">–</span></div>
-    <div class="warn" style="margin:0 0 14px">Envelope digitized from the chart image (≈ ±1–2 index). Gross-error check
-      only — near a limit, use the official graph.</div>
-  </details>
-
-  <div class="disc">
-    Advisory aid only — verify against the official stab trim sheet.
-    ΔI from the D.A.A. Bags Index Effect table (8 kg/pc, CJ Rev 3);
-    Δ%MAC = ΔI·460.85/(TOW·3.38 m)·100; Δtrim = table slope × Δ%MAC
-    (0.172/% flaps 8 · 0.18/% flaps 20 ≥26308 kg · 0.16/% ≤24947 kg, interpolated between).
-    Result rounded to nearest 0.1.
+    <div>
+      <label>ZFW (kg)</label>
+      <input type="number" id="zfw" inputmode="numeric" placeholder="enter">
+    </div>
+    <div>
+      <label>TOW (auto)</label>
+      <input type="number" id="towDisp" disabled placeholder="from above">
+    </div>
   </div>
+  <canvas id="env"></canvas>
+  <div class="legend">
+    <span style="color:var(--accent)">━ Pax flight limits (curtailed)</span>
+    <span>╌ Positioning (no pax)</span>
+    <span>○ before → <b style="color:var(--green)">✕</b> after DAA</span>
+  </div>
+  <div class="rrow"><span class="k">Corrected LIZFW / LITOW</span><span class="v" id="rLi">–</span></div>
+  <div class="rrow" style="border:none; margin-bottom:8px"><span class="k">Margin to FWD / AFT limit @ TOW</span><span class="v" id="rMargin">–</span></div>
+  <div class="warn" style="margin:0 0 14px">Envelope per AHM565 (EI-JA series, 88 seats, curtailed loadsheet limits). Other registrations/LOPAs may differ — the official loadsheet limits always govern.</div>
+</details>
 
-  <script>
-    const DAA_N = [0, 5, 10, 15, 20, 30, 40, 60, 80];
-    const DAA = {
-      h1: [0, -0.7, -1.5, -2.2, -2.9, -4.4, -5.9, -8.8, -11.8],
-      h2: [0, -0.4, -0.8, -1.2, -1.6, -2.4, -3.2, -4.9, -6.5],
-      h6: [0, 0.7, 1.5, 2.2, 3.0, 4.5, 6.0, 8.9, 11.9]
-    };
-    const W_LO = 24947, W_HI = 26308;
-    const IDX_C = 460.85, MAC_M = 3.3829, BAG_KG = 8;
-    const LEMAC = 21.161, REF_STA = 21.844, IDX_K = 50;
-    const MTOW = 37995, MLW = 34065, MZFW = 32092, MINW = 20400;
-    // trim units per %MAC (table average slopes)
-    const SLOPE_F8 = 0.172, SLOPE_F20_HI = 0.18, SLOPE_F20_LO = 0.16;
+<div class="disc">
+  Advisory aid only — verify against the official stab trim sheet and loadsheet.
+  Data per CityJet AHM565 (Jan 2026): index formula I = W·(ARM−21.844)/460.85 + 50,
+  MAC 3.3829 m, LEMAC 21.161 m. ΔI per D.A.A. Bags Index Effect table (8 kg/pc).
+  Δtrim = table slope × Δ%MAC (0.172/% flaps 8 · 0.18/% flaps 20 ≥26308 kg · 0.16/% ≤24947 kg).
+  Result rounded to nearest 0.1.
+</div>
 
-    const FUEL_TBL = [
-      [0, 0.0], [200, -0.3], [400, -0.6], [600, -0.8], [800, -1.1], [1000, -1.3],
-      [1200, -1.6], [1400, -1.7], [1600, -1.9], [1800, -2.1], [2000, -2.2],
-      [2200, -2.3], [2400, -2.4], [2600, -2.5], [2800, -2.5], [3000, -2.6],
-      [3200, -2.6], [3400, -2.5], [3600, -2.6], [3800, -2.5], [4000, -2.4],
-      [4200, -2.3], [4400, -2.2], [4600, -2.0], [4800, -1.8], [5000, -1.6],
-      [5200, -1.4], [5400, -1.1], [5600, -0.8], [5800, -0.4], [6000, -0.1],
-      [6200, 0.4], [6400, 0.8], [6600, 1.4], [6797, 1.9], [6800, 1.9],
-      [7000, 1.5], [7200, 1.2], [7400, 1.0], [7600, 0.7], [7800, 0.6],
-      [8000, 0.3], [8200, 0.1], [8400, -0.2], [8600, -0.5], [8800, -0.8],
-      [8888, -0.9]
-    ];
+<script>
+// ================= Data — CityJet AHM565, CRJ900 EI-JA series, 88 seats =================
+const DAA_N = [0,5,10,15,20,30,40,60,80];
+const DAA = {
+  h1: [0,-0.7,-1.5,-2.2,-2.9,-4.4,-5.9,-8.8,-11.8],
+  h2: [0,-0.4,-0.8,-1.2,-1.6,-2.4,-3.2,-4.9,-6.5],
+  h6: [0, 0.7, 1.5, 2.2, 3.0, 4.5, 6.0, 8.9, 11.9]
+};
+const W_LO = 24947, W_HI = 26308;
+const IDX_C = 460.85, MAC_M = 3.3829, BAG_KG = 8;
+const MTOW = 37995, MRW = 38222, MLW = 34065, MZFW = 32092, MINW = 20412;
+const SLOPE_F8 = 0.172, SLOPE_F20_HI = 0.18, SLOPE_F20_LO = 0.16;
+const TRIM_MIN = 3.0, TRIM_MAX = 10.5; // input sanity band (table 3.6–8.6 + operator margin)
 
-    const ENV = {
-      fwd_full: [[20.4, 35.0], [21.5, 33.7], [24.0, 31.3], [27.0, 29.2], [30.0, 27.6], [32.1, 26.8], [35.2, 25.9], [37.0, 26.8], [38.1, 28.3]],
-      fwd_nf: [[20.4, 33.3], [21.5, 32.0], [24.0, 29.7], [27.0, 27.6], [30.0, 26.0], [32.1, 25.2], [35.2, 24.3], [37.0, 25.2], [38.1, 26.7]],
-      fwd_if: [[20.4, 31.7], [24.0, 28.2], [27.0, 26.1], [30.0, 24.4], [32.1, 23.6], [35.2, 22.7], [37.0, 23.8], [38.1, 25.1]],
-      aft_nf: [[20.4, 66.0], [23.0, 70.0], [27.0, 75.0], [29.0, 73.0], [32.1, 69.5], [34.1, 67.5], [36.0, 65.0], [38.1, 62.0]],
-      aft_full: [[20.4, 68.5], [23.0, 72.5], [27.0, 77.5], [29.0, 75.5], [32.1, 72.0], [34.1, 70.0], [36.0, 67.5], [38.1, 64.5]],
-      aft_if: [[20.4, 70.5], [23.0, 74.5], [27.0, 79.5], [29.0, 77.5], [32.1, 74.0], [34.1, 72.0], [36.0, 69.5], [38.1, 66.5]]
-    };
+// CG limits for loadsheet — AHM565 C4.2, passenger flights (weight kg, index)
+const PAX_FWD = [[20412,38.4],[32092,29.7],[32093,29.1],[33600,27.9],[34065,27.5],[35100,26.7],[37200,27.9],[37995,29.4],[38222,29.8]];
+const PAX_AFT = [[20412,67.6],[21300,70.1],[23133,72.0],[27216,76.5],[32092,69.3],[33600,66.2],[34065,65.8],[37421,62.9],[37995,54.3],[38222,50.9]];
+// AHM565 C4.1, positioning flights (no pax) — shown dashed for reference
+const POS_FWD = [[20412,35.3],[32092,26.6],[32093,26.0],[33600,24.9],[34065,24.5],[35100,23.7],[37200,24.9],[37995,26.4],[38222,26.8]];
+const POS_AFT = [[20412,70.7],[21300,73.2],[23100,75.1],[27216,79.6],[32092,72.4],[33600,69.3],[34065,68.3],[37421,66.0],[37995,57.4]];
 
-    let flap = 20;
+let flap = 20;
 
-    function resetAll() {
-      document.getElementById('tow').value = '35000';
-      document.getElementById('trim').value = '6.5';
-      document.getElementById('h1').value = '0';
-      document.getElementById('h2').value = '0';
-      document.getElementById('h6').value = '0';
-      document.getElementById('zfw').value = '30200';
-      document.getElementById('lizfw').value = '';
-      document.getElementById('litow').value = '';
-      flap = 20;
-      document.querySelectorAll('#flapSeg button').forEach(x => {
-        if (x.dataset.f === "20") x.classList.add('on');
-        else x.classList.remove('on');
-      });
-      calc();
+function interp(xs, ys, x){
+  if (x <= xs[0]) return ys[0];
+  const n = xs.length;
+  if (x >= xs[n-1]) return ys[n-1];
+  for (let i=1;i<n;i++){
+    if (x <= xs[i]) {
+      const t=(x-xs[i-1])/(xs[i]-xs[i-1]);
+      return ys[i-1]+t*(ys[i]-ys[i-1]);
     }
+  }
+}
+function limIdx(curve, wkg){ return interp(curve.map(p=>p[0]), curve.map(p=>p[1]), wkg); }
+function daaIndex(hold, n){
+  if (n<=0) return 0;
+  const ys = DAA[hold];
+  if (n >= 80){ const s=(ys[8]-ys[7])/20; return ys[8]+s*(n-80); }
+  return interp(DAA_N, ys, n);
+}
+function slope(w){
+  if (flap === 8) return SLOPE_F8;
+  if (w <= W_LO) return SLOPE_F20_LO;
+  if (w >= W_HI) return SLOPE_F20_HI;
+  return SLOPE_F20_LO + (SLOPE_F20_HI-SLOPE_F20_LO)*(w-W_LO)/(W_HI-W_LO);
+}
+function bump(id, d){
+  const el = document.getElementById(id);
+  el.value = Math.max(0, (parseInt(el.value)||0) + d);
+  calc();
+}
+function bumpTrim(d){
+  const el = document.getElementById('trim');
+  let v = parseFloat(el.value);
+  if (isNaN(v)) v = 7.0;
+  v = Math.round((v + d*0.1)*10)/10;
+  v = Math.min(TRIM_MAX, Math.max(TRIM_MIN, v));
+  el.value = v.toFixed(1);
+  calc();
+}
+function fmt(x, d=1, sign=false){ return (sign && x > 0 ? '+' : '') + x.toFixed(d); }
+function val(id){ return parseFloat(document.getElementById(id).value); }
 
-    function interp(xs, ys, x) {
-      if (x <= xs[0]) { const s = (ys[1] - ys[0]) / (xs[1] - xs[0]); return ys[0] + s * (x - xs[0]); }
-      const n = xs.length;
-      if (x >= xs[n - 1]) { const s = (ys[n - 1] - ys[n - 2]) / (xs[n - 1] - xs[n - 2]); return ys[n - 1] + s * (x - xs[n - 1]); }
-      for (let i = 1; i < n; i++) {
-        if (x <= xs[i]) {
-          const t = (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
-          return ys[i - 1] + t * (ys[i] - ys[i - 1]);
-        }
-      }
-    }
-    function envIdx(curve, wt) { return interp(curve.map(p => p[0]), curve.map(p => p[1]), wt); }
-    function daaIndex(hold, n) { return n > 0 ? interp(DAA_N, DAA[hold], n) : 0; }
-    function slope(w) {
-      if (flap === 8) return SLOPE_F8;
-      if (w <= W_LO) return SLOPE_F20_LO;
-      if (w >= W_HI) return SLOPE_F20_HI;
-      return SLOPE_F20_LO + (SLOPE_F20_HI - SLOPE_F20_LO) * (w - W_LO) / (W_HI - W_LO);
-    }
-    function trimAt10(w) {
-      if (flap === 8) return 8.4;
-      if (w <= W_LO) return 7.6;
-      if (w >= W_HI) return 8.6;
-      return 7.6 + (8.6 - 7.6) * (w - W_LO) / (W_HI - W_LO);
-    }
-    function macToIndex(mac, w) {
-      const cg = (mac / 100 * MAC_M) + LEMAC;
-      return (w * (cg - REF_STA)) / IDX_C + IDX_K;
-    }
-    function fuelIndex(w) { return interp(FUEL_TBL.map(p => p[0]), FUEL_TBL.map(p => p[1]), w); }
-    function bump(id, d) {
-      const el = document.getElementById(id);
-      el.value = Math.max(0, (parseInt(el.value) || 0) + d);
-      calc();
-    }
-    function fmt(x, d = 1, sign = false) { return (sign && x > 0 ? '+' : '') + x.toFixed(d); }
-    function val(id) {
-      const el = document.getElementById(id);
-      let v = el.value;
-      if (!v && el.placeholder && el.placeholder !== 'auto' && el.placeholder !== 'from above') v = el.placeholder;
-      if (!v || isNaN(parseFloat(v.replace(',', '.')))) return NaN;
-      return parseFloat(v.replace(',', '.'));
-    }
+function calc(){
+  const tow=val('tow'), trim=val('trim');
+  const n1 = parseInt(document.getElementById('h1').value)||0;
+  const n2 = parseInt(document.getElementById('h2').value)||0;
+  const n6 = parseInt(document.getElementById('h6').value)||0;
 
-    function calc() {
-      const tow = val('tow'), trim = val('trim');
-      const zfwv = val('zfw');
+  const d1 = daaIndex('h1',n1), d2 = daaIndex('h2',n2), d6 = daaIndex('h6',n6);
+  document.getElementById('i1').textContent = 'ΔI ' + fmt(d1,1,true);
+  document.getElementById('i2').textContent = 'ΔI ' + fmt(d2,1,true);
+  document.getElementById('i6').textContent = 'ΔI ' + fmt(d6,1,true);
+  document.getElementById('towDisp').value = isNaN(tow) ? '' : tow;
 
-      // Auto calculate LI based on Trim
-      if (!isNaN(tow) && !isNaN(trim)) {
-        const t10 = trimAt10(tow);
-        const slp = slope(tow);
-        const mac = 10 + (t10 - trim) / slp;
-        const autoLi = macToIndex(mac, tow);
-        document.getElementById('litow').placeholder = autoLi.toFixed(1);
-        if (!isNaN(zfwv) && tow >= zfwv) {
-          const autoLizfw = autoLi - fuelIndex(tow - zfwv);
-          document.getElementById('lizfw').placeholder = autoLizfw.toFixed(1);
-        } else {
-          document.getElementById('lizfw').placeholder = "auto";
-        }
-      } else {
-        document.getElementById('litow').placeholder = "auto";
-        document.getElementById('lizfw').placeholder = "auto";
-      }
+  const resCard = document.getElementById('resCard');
+  const msgs = document.getElementById('msgs');
+  msgs.innerHTML = '';
 
-      const n1 = parseInt(document.getElementById('h1').value) || 0;
-      const n2 = parseInt(document.getElementById('h2').value) || 0;
-      const n6 = parseInt(document.getElementById('h6').value) || 0;
+  const dIdx = d1 + d2 + d6;
+  const addKg = (n1+n2+n6) * BAG_KG;
 
-      const d1 = daaIndex('h1', n1), d2 = daaIndex('h2', n2), d6 = daaIndex('h6', n6);
-      document.getElementById('i1').textContent = 'ΔI ' + fmt(d1, 1, true);
-      document.getElementById('i2').textContent = 'ΔI ' + fmt(d2, 1, true);
-      document.getElementById('i6').textContent = 'ΔI ' + fmt(d6, 1, true);
-      document.getElementById('towDisp').value = isNaN(tow) ? '' : tow;
+  // ---- validation ----
+  let badMsg = '';
+  const towEl = document.getElementById('tow');
+  const zfwEl = document.getElementById('zfw');
+  const trimStep = document.getElementById('trimStep');
+  const zfwv = val('zfw');
 
-      const resCard = document.getElementById('resCard');
-      const msgs = document.getElementById('msgs');
-      msgs.innerHTML = '';
+  let towBad=false, trimBad=false, zfwBad=false;
+  if (!isNaN(tow)){
+    if (tow + addKg > MTOW){ towBad=true; badMsg += '<div class="alert">⚠ TOW ' + (addKg? '+ bags = ' + Math.round(tow+addKg) + ' kg ' : tow + ' kg ') + 'exceeds MTOW ' + MTOW + ' kg.</div>'; }
+    if (tow < MINW){ towBad=true; badMsg += '<div class="alert">⚠ TOW below minimum operating weight ' + MINW + ' kg.</div>'; }
+  }
+  if (!isNaN(trim) && (trim < TRIM_MIN || trim > TRIM_MAX)){
+    trimBad=true; badMsg += '<div class="alert">⚠ Trim ' + trim.toFixed(1) + ' outside valid range ' + TRIM_MIN.toFixed(1) + '–' + TRIM_MAX.toFixed(1) + ' UP.</div>';
+  }
+  if (!isNaN(zfwv)){
+    if (zfwv + addKg > MZFW){ zfwBad=true; badMsg += '<div class="alert">⚠ ZFW ' + (addKg? '+ bags = ' + Math.round(zfwv+addKg) + ' kg ' : zfwv + ' kg ') + 'exceeds MZFW ' + MZFW + ' kg.</div>'; }
+    if (!isNaN(tow) && zfwv > tow){ zfwBad=true; badMsg += '<div class="alert">⚠ ZFW greater than TOW — check entries.</div>'; }
+  }
+  towEl.className = towBad ? 'bad' : '';
+  zfwEl.className = zfwBad ? 'bad' : '';
+  trimStep.className = 'stepper' + (trimBad ? ' bad' : '');
+  const bad = towBad || trimBad;
 
-      const dIdx = d1 + d2 + d6;
-      const addKg = (n1 + n2 + n6) * BAG_KG;
+  if (isNaN(tow) || isNaN(trim) || bad){
+    resCard.className = 'result na';
+    document.getElementById('newTrim').textContent = bad ? '⚠' : '–';
+    document.getElementById('deltaTxt').textContent = bad ? 'Input outside limits' : 'Enter TOW and loadsheet trim';
+    msgs.innerHTML = badMsg;
+    drawEnv(dIdx, addKg);
+    return;
+  }
+  msgs.innerHTML = badMsg;
 
-      // ---- weight validation against chart limits ----
-      const towEl = document.getElementById('tow');
-      const zfwEl = document.getElementById('zfw');
-      const trimEl = document.getElementById('trim');
-      let towBad = false, zfwBad = false, trimBad = false, badMsg = '';
-      if (!isNaN(tow)) {
-        if (tow + addKg > MTOW) { towBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ TOW ' + (addKg ? '+ bags = ' + Math.round(tow + addKg) + ' kg ' : tow + ' kg ') + 'exceeds MTOW ' + MTOW + ' kg.</div>'; }
-        if (tow < MINW) { towBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ TOW below chart minimum ' + MINW + ' kg.</div>'; }
-      }
-      if (!isNaN(zfwv)) {
-        if (zfwv + addKg > MZFW) { zfwBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ ZFW ' + (addKg ? '+ bags = ' + Math.round(zfwv + addKg) + ' kg ' : zfwv + ' kg ') + 'exceeds MZFW ' + MZFW + ' kg.</div>'; }
-        if (!isNaN(tow) && zfwv > tow) { zfwBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ ZFW greater than TOW — check entries.</div>'; }
-      }
-      if (!isNaN(trim)) {
-        if (trim < 0 || trim > 15) { trimBad = true; badMsg += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ Trim ' + trim + ' is outside valid limits (0–15).</div>'; }
-      }
-      towEl.className = towBad ? 'bad' : '';
-      zfwEl.className = zfwBad ? 'bad' : '';
-      trimEl.className = trimBad ? 'bad' : '';
+  const dMac = dIdx * IDX_C / (tow * MAC_M) * 100;
+  const dTrim = -dMac * slope(tow);
+  const newTrim = Math.round((trim + dTrim)*10)/10;
 
-      if (isNaN(tow) || isNaN(trim) || towBad || trimBad) {
-        resCard.className = 'result na';
-        document.getElementById('newTrim').textContent = (towBad || trimBad) ? '⚠' : '–';
-        document.getElementById('deltaTxt').textContent = (towBad || trimBad) ? 'Input outside valid limits' : 'Enter TOW and loadsheet trim';
-        msgs.innerHTML = badMsg;
-        drawEnv(dIdx, addKg);
-        return;
-      }
-      msgs.innerHTML = badMsg;
-      // fwd shift (negative index) -> more nose-up trim
-      const dMac = dIdx * IDX_C / (tow * MAC_M) * 100;
-      const dTrim = -dMac * slope(tow);
-      const newTrim = Math.round((trim + dTrim) * 10) / 10;
+  resCard.className = 'result';
+  document.getElementById('newTrim').innerHTML = newTrim.toFixed(1) + ' <small>UP</small>';
+  document.getElementById('deltaTxt').innerHTML =
+    'Δtrim <b>' + fmt(dTrim,2,true) + '</b> · ΔI <b>' + fmt(dIdx,1,true) +
+    '</b> · Δ%MAC <b>' + fmt(dMac,2,true) + '</b> · +' + addKg + ' kg';
 
-      resCard.className = 'result';
-      document.getElementById('newTrim').innerHTML = newTrim.toFixed(1) + ' <small>UP</small>';
-      document.getElementById('deltaTxt').innerHTML =
-        'Δtrim <b>' + fmt(dTrim, 2, true) + '</b> · ΔI <b>' + fmt(dIdx, 1, true) +
-        '</b> · Δ%MAC <b>' + fmt(dMac, 2, true) + '</b> · +' + addKg + ' kg';
+  if (flap === 20 && tow > W_LO && tow < W_HI)
+    msgs.innerHTML += '<div class="warn">Flaps 20 between 24947–26308 kg: slope interpolated per sheet note.</div>';
 
-      if (flap === 20 && tow > W_LO && tow < W_HI)
-        msgs.innerHTML += '<div class="warn">Flaps 20 between 24947–26308 kg: slope interpolated per sheet note.</div>';
+  drawEnv(dIdx, addKg);
+}
 
-      drawEnv(dIdx, addKg);
-    }
+// ================= Envelope plot (AHM565 exact limits) =================
+const IX_MIN = 15, IX_MAX = 90, W_MIN = 20, W_MAX = 39;
+function drawEnv(dIdx, addKg){
+  const tow=val('tow'), zfw=val('zfw'), lizfw=val('lizfw'), litow=val('litow');
 
-    // ================= Envelope plot =================
-    function drawEnv(dIdx, addKg) {
-      const tow = val('tow'), zfw = val('zfw'), lizfw = val('lizfw'), litow = val('litow');
-      const havePts = !isNaN(tow) && !isNaN(zfw) && !isNaN(lizfw) && !isNaN(litow);
+  const cv = document.getElementById('env');
+  if (!cv.clientWidth) return; // details collapsed
+  const dpr = window.devicePixelRatio||1;
+  const cssW = cv.clientWidth, cssH = cv.clientHeight || 460;
+  cv.width = Math.round(cssW*dpr); cv.height = Math.round(cssH*dpr);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,cssW,cssH);
 
-      const cv = document.getElementById('env');
-      if (!cv.clientWidth) return; // details collapsed
-      const dpr = window.devicePixelRatio || 1;
-      const cssW = cv.clientWidth, cssH = cv.clientHeight || 460;
-      cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
-      const ctx = cv.getContext('2d');
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, cssW, cssH);
+  const mL=46, mR=12, mT=16, mB=34;
+  const X = i => mL + (i-IX_MIN)/(IX_MAX-IX_MIN)*(cssW-mL-mR);
+  const Y = w => mT + (W_MAX-w)/(W_MAX-W_MIN)*(cssH-mT-mB);
 
-      const mL = 44, mR = 10, mT = 16, mB = 32;
-      const X = i => mL + (i - 10) / 90 * (cssW - mL - mR);
-      const Y = w => mT + (39 - w) / 19 * (cssH - mT - mB);
+  function path(pts){ pts.forEach((p,i)=> i?ctx.lineTo(X(p[1]),Y(p[0]/1000)):ctx.moveTo(X(p[1]),Y(p[0]/1000))); }
 
-      function path(pts) { pts.forEach((p, i) => i ? ctx.lineTo(X(p[1]), Y(p[0])) : ctx.moveTo(X(p[1]), Y(p[0]))); }
-      function band(a, b, fill) {
-        ctx.beginPath(); path(a);[...b].reverse().forEach(p => ctx.lineTo(X(p[1]), Y(p[0])));
-        ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
-      }
-      band(ENV.fwd_full, ENV.aft_nf, 'rgba(230,238,248,0.92)');
-      band(ENV.fwd_nf, ENV.fwd_full, 'rgba(160,175,195,0.55)');
-      band(ENV.fwd_if, ENV.fwd_nf, 'rgba(120,135,158,0.45)');
-      band(ENV.aft_nf, ENV.aft_full, 'rgba(160,175,195,0.55)');
-      band(ENV.aft_full, ENV.aft_if, 'rgba(120,135,158,0.45)');
+  // white envelope region between passenger-flight limits
+  ctx.beginPath(); path(PAX_FWD);
+  [...PAX_AFT].reverse().forEach(p=>ctx.lineTo(X(p[1]),Y(p[0]/1000)));
+  ctx.closePath(); ctx.fillStyle='rgba(230,238,248,0.92)'; ctx.fill();
 
-      ctx.font = '10px sans-serif'; ctx.lineWidth = 1;
-      for (let i = 10; i <= 100; i += 5) {
-        ctx.strokeStyle = i % 10 === 0 ? 'rgba(90,110,135,0.45)' : 'rgba(90,110,135,0.2)';
-        ctx.beginPath(); ctx.moveTo(X(i), mT); ctx.lineTo(X(i), cssH - mB); ctx.stroke();
-        if (i % 10 === 0) { ctx.fillStyle = '#8fa3ba'; ctx.textAlign = 'center'; ctx.fillText(i, X(i), cssH - mB + 14); }
-      }
-      for (let w = 20; w <= 39; w += 1) {
-        ctx.strokeStyle = w % 2 === 0 ? 'rgba(90,110,135,0.45)' : 'rgba(90,110,135,0.2)';
-        ctx.beginPath(); ctx.moveTo(mL, Y(w)); ctx.lineTo(cssW - mR, Y(w)); ctx.stroke();
-        if (w % 2 === 0) { ctx.fillStyle = '#8fa3ba'; ctx.textAlign = 'right'; ctx.fillText(w, mL - 5, Y(w) + 3); }
-      }
-      ctx.textAlign = 'center'; ctx.fillStyle = '#aebfd4'; ctx.font = '11px sans-serif';
-      ctx.fillText('INDEX', mL + (cssW - mL - mR) / 2, cssH - 5);
-      ctx.save(); ctx.translate(11, mT + (cssH - mT - mB) / 2); ctx.rotate(-Math.PI / 2);
-      ctx.fillText('Weight (1000 kg)', 0, 0); ctx.restore();
+  // grid
+  ctx.font='10px sans-serif'; ctx.lineWidth=1;
+  for(let i=IX_MIN;i<=IX_MAX;i+=5){
+    ctx.strokeStyle = i%10===0 ? 'rgba(90,110,135,0.45)' : 'rgba(90,110,135,0.2)';
+    ctx.beginPath(); ctx.moveTo(X(i),mT); ctx.lineTo(X(i),cssH-mB); ctx.stroke();
+    if(i%10===0){ ctx.fillStyle='#8fa3ba'; ctx.textAlign='center'; ctx.fillText(i, X(i), cssH-mB+14); }
+  }
+  for(let w=W_MIN;w<=W_MAX;w+=1){
+    ctx.strokeStyle = w%2===0 ? 'rgba(90,110,135,0.45)' : 'rgba(90,110,135,0.2)';
+    ctx.beginPath(); ctx.moveTo(mL,Y(w)); ctx.lineTo(cssW-mR,Y(w)); ctx.stroke();
+    if(w%2===0){ ctx.fillStyle='#8fa3ba'; ctx.textAlign='right'; ctx.fillText(w, mL-5, Y(w)+3); }
+  }
+  ctx.textAlign='center'; ctx.fillStyle='#aebfd4'; ctx.font='11px sans-serif';
+  ctx.fillText('INDEX', mL+(cssW-mL-mR)/2, cssH-5);
+  ctx.save(); ctx.translate(12, mT+(cssH-mT-mB)/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Weight (1000 kg)', 0, 0); ctx.restore();
 
-      function curve(pts, color, w, dash) {
-        ctx.beginPath(); path(pts);
-        ctx.strokeStyle = color; ctx.lineWidth = w; ctx.setLineDash(dash || []);
-        ctx.stroke(); ctx.setLineDash([]);
-      }
-      curve(ENV.fwd_if, '#7a6a94', 1.5, [5, 4]); curve(ENV.aft_if, '#7a6a94', 1.5, [5, 4]);
-      curve(ENV.fwd_nf, '#93b0d6', 1.5, [7, 4]); curve(ENV.aft_full, '#93b0d6', 1.5, [7, 4]);
-      curve(ENV.fwd_full, '#4db8ff', 2.5); curve(ENV.aft_nf, '#4db8ff', 2.5);
+  function curve(pts, color, w, dash){
+    ctx.beginPath(); path(pts);
+    ctx.strokeStyle=color; ctx.lineWidth=w; ctx.setLineDash(dash||[]);
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+  curve(POS_FWD, '#7a8db0', 1.5, [5,4]); curve(POS_AFT, '#7a8db0', 1.5, [5,4]);
+  curve(PAX_FWD, '#4db8ff', 2.5);        curve(PAX_AFT, '#4db8ff', 2.5);
 
-      ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = '#4db8ff';
-      ctx.textAlign = 'right'; ctx.fillText('FWD LIMIT', X(envIdx(ENV.fwd_if, 29)) - 8, Y(29));
-      ctx.textAlign = 'left'; ctx.fillText('AFT LIMIT', X(envIdx(ENV.aft_if, 31)) + 8, Y(31));
+  ctx.font='bold 11px sans-serif'; ctx.fillStyle='#4db8ff';
+  ctx.textAlign='right'; ctx.fillText('FWD LIMIT', X(limIdx(PAX_FWD,29000))-10, Y(29));
+  ctx.textAlign='left';  ctx.fillText('AFT LIMIT', X(limIdx(PAX_AFT,31000))+10, Y(31));
 
-      function wline(wkg, label) {
-        const w = wkg / 1000;
-        ctx.beginPath(); ctx.moveTo(mL, Y(w)); ctx.lineTo(cssW - mR, Y(w));
-        ctx.strokeStyle = '#ffb347'; ctx.lineWidth = 1.2; ctx.setLineDash([6, 4]); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = '#ffb347'; ctx.textAlign = 'left'; ctx.font = 'bold 9.5px sans-serif';
-        ctx.fillText(label + ' ' + wkg, mL + 6, Y(w) - 4);
-      }
-      wline(MTOW, 'MTOW'); wline(MLW, 'MLW'); wline(MZFW, 'MZFW');
+  function wline(wkg, label){
+    const w = wkg/1000;
+    ctx.beginPath(); ctx.moveTo(mL,Y(w)); ctx.lineTo(cssW-mR,Y(w));
+    ctx.strokeStyle='#ffb347'; ctx.lineWidth=1.2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffb347'; ctx.textAlign='left'; ctx.font='bold 9.5px sans-serif';
+    ctx.fillText(label+' '+wkg, mL+6, Y(w)-4);
+  }
+  wline(MTOW,'MTOW'); wline(MLW,'MLW'); wline(MZFW,'MZFW');
 
-      const haveTOW = !isNaN(tow) && !isNaN(litow);
-      const haveZFW = !isNaN(zfw) && !isNaN(lizfw);
+  const haveTOW = !isNaN(tow) && !isNaN(litow);
+  const haveZFW = !isNaN(zfw) && !isNaN(lizfw);
 
-      if (!haveTOW && !haveZFW) {
-        ctx.fillStyle = 'rgba(143,163,186,0.9)'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('Enter LITOW (and ZFW + LIZFW) to plot the CG points', mL + (cssW - mL - mR) / 2, mT + 16);
-        document.getElementById('rMargin').textContent = '–';
-        document.getElementById('rLi').textContent = '–';
-        return;
-      }
+  if (!haveTOW && !haveZFW){
+    ctx.fillStyle='rgba(143,163,186,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Enter LITOW (and ZFW + LIZFW) to plot the CG points', mL+(cssW-mL-mR)/2, mT+16);
+    document.getElementById('rMargin').textContent='–';
+    document.getElementById('rLi').textContent='–';
+    return;
+  }
 
-      // CG markers: hollow circle = before, bold cross = after DAA
-      function ptBefore(idx, wkg) {
-        const x = X(idx), y = Y(wkg / 1000);
-        ctx.beginPath(); ctx.arc(x, y, 7, 0, 7);
-        ctx.strokeStyle = '#365a80'; ctx.lineWidth = 2.5; ctx.stroke();
-      }
-      function ptCross(idx, wkg, label) {
-        const x = X(idx), y = Y(wkg / 1000), r = 9;
-        ctx.strokeStyle = '#0a5c30'; ctx.lineWidth = 6; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(x - r, y - r); ctx.lineTo(x + r, y + r);
-        ctx.moveTo(x - r, y + r); ctx.lineTo(x + r, y - r); ctx.stroke();
-        ctx.strokeStyle = '#3ddc84'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(x - r, y - r); ctx.lineTo(x + r, y + r);
-        ctx.moveTo(x - r, y + r); ctx.lineTo(x + r, y - r); ctx.stroke();
-        ctx.lineCap = 'butt';
-        ctx.fillStyle = '#3ddc84'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(label, x + 13, y + 4);
-      }
-      function link(i1, w1, i2, w2) {
-        ctx.beginPath(); ctx.moveTo(X(i1), Y(w1 / 1000)); ctx.lineTo(X(i2), Y(w2 / 1000));
-        ctx.strokeStyle = '#3ddc84'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]);
-      }
-      const moved = (dIdx !== 0 || addKg > 0);
-      const zfw2 = zfw + addKg, tow2 = tow + addKg;
+  function ptBefore(idx, wkg){
+    const x=X(idx), y=Y(wkg/1000);
+    ctx.beginPath(); ctx.arc(x,y,7,0,7);
+    ctx.strokeStyle='#365a80'; ctx.lineWidth=2.5; ctx.stroke();
+  }
+  function ptCross(idx, wkg, label){
+    const x=X(idx), y=Y(wkg/1000), r=9;
+    ctx.strokeStyle='#0a5c30'; ctx.lineWidth=6; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(x-r,y-r); ctx.lineTo(x+r,y+r);
+    ctx.moveTo(x-r,y+r); ctx.lineTo(x+r,y-r); ctx.stroke();
+    ctx.strokeStyle='#3ddc84'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x-r,y-r); ctx.lineTo(x+r,y+r);
+    ctx.moveTo(x-r,y+r); ctx.lineTo(x+r,y-r); ctx.stroke();
+    ctx.lineCap='butt';
+    ctx.fillStyle='#3ddc84'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(label, x+13, y+4);
+  }
+  function link(i1,w1,i2,w2){
+    ctx.beginPath(); ctx.moveTo(X(i1),Y(w1/1000)); ctx.lineTo(X(i2),Y(w2/1000));
+    ctx.strokeStyle='#3ddc84'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+  const moved = (dIdx!==0 || addKg>0);
+  const zfw2 = zfw + addKg, tow2 = tow + addKg;
 
-      if (haveZFW) {
-        if (moved) { link(lizfw, zfw, lizfw + dIdx, zfw2); ptBefore(lizfw, zfw); }
-        ptCross(lizfw + dIdx, zfw2, 'ZFW');
-      }
-      if (haveTOW) {
-        if (moved) { link(litow, tow, litow + dIdx, tow2); ptBefore(litow, tow); }
-        ptCross(litow + dIdx, tow2, 'TOW');
-      }
+  if (haveZFW){
+    if (moved){ link(lizfw,zfw, lizfw+dIdx,zfw2); ptBefore(lizfw, zfw); }
+    ptCross(lizfw+dIdx, zfw2, 'ZFW');
+  }
+  if (haveTOW){
+    if (moved){ link(litow,tow, litow+dIdx,tow2); ptBefore(litow, tow); }
+    ptCross(litow+dIdx, tow2, 'TOW');
+  }
 
-      document.getElementById('rLi').textContent =
-        (haveZFW ? (lizfw + dIdx).toFixed(1) : '–') + ' / ' + (haveTOW ? (litow + dIdx).toFixed(1) : '–');
+  document.getElementById('rLi').textContent =
+    (haveZFW ? (lizfw+dIdx).toFixed(1) : '–') + ' / ' + (haveTOW ? (litow+dIdx).toFixed(1) : '–');
 
-      const msgs = document.getElementById('msgs');
-      if (haveTOW) {
-        const mFwd = (litow + dIdx) - envIdx(ENV.fwd_full, tow2 / 1000);
-        const mAft = envIdx(ENV.aft_nf, tow2 / 1000) - (litow + dIdx);
-        const el = document.getElementById('rMargin');
-        el.textContent = fmt(mFwd, 1) + ' / ' + fmt(mAft, 1) + ' index';
-        el.className = 'v ' + ((mFwd < 0 || mAft < 0) ? 'neg' : 'pos');
-        if (mFwd < 0 || mAft < 0)
-          msgs.innerHTML += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ Corrected TOW point at/outside digitized envelope — verify on the official graph.</div>';
-        else if (mFwd < 3 || mAft < 3)
-          msgs.innerHTML += '<div class="warn">Corrected TOW point within ~3 index of a limit — envelope approximate, verify on the official graph.</div>';
-      } else {
-        document.getElementById('rMargin').textContent = '–';
-      }
-      if (haveZFW) {
-        const zM_f = (lizfw + dIdx) - envIdx(ENV.fwd_full, zfw2 / 1000);
-        const zM_a = envIdx(ENV.aft_nf, zfw2 / 1000) - (lizfw + dIdx);
-        if (zM_f < 0 || zM_a < 0)
-          msgs.innerHTML += '<div class="warn" style="border-color:var(--red);color:var(--red);background:#331414">⚠ Corrected ZFW point at/outside digitized envelope — verify on the official graph.</div>';
-      }
-    }
+  const msgs = document.getElementById('msgs');
+  if (haveTOW){
+    const mFwd = (litow+dIdx) - limIdx(PAX_FWD, tow2);
+    const mAft = limIdx(PAX_AFT, tow2) - (litow+dIdx);
+    const el = document.getElementById('rMargin');
+    el.textContent = fmt(mFwd,1) + ' / ' + fmt(mAft,1) + ' index';
+    el.className = 'v ' + ((mFwd<0||mAft<0)?'neg':'pos');
+    if (mFwd < 0 || mAft < 0)
+      msgs.innerHTML += '<div class="alert">⚠ Corrected TOW point outside the passenger-flight envelope (AHM565) — verify with load control.</div>';
+    else if (mFwd < 2 || mAft < 2)
+      msgs.innerHTML += '<div class="warn">Corrected TOW point within 2 index of a limit — double-check.</div>';
+  } else {
+    document.getElementById('rMargin').textContent='–';
+  }
+  if (haveZFW){
+    const zM_f = (lizfw+dIdx) - limIdx(PAX_FWD, Math.min(zfw2, MZFW));
+    const zM_a = limIdx(PAX_AFT, Math.min(zfw2, MZFW)) - (lizfw+dIdx);
+    if (zM_f < 0 || zM_a < 0)
+      msgs.innerHTML += '<div class="alert">⚠ Corrected ZFW point outside the passenger-flight envelope (AHM565) — verify with load control.</div>';
+  }
+}
 
-    document.querySelectorAll('#flapSeg button').forEach(b => {
-      b.onclick = () => {
-        flap = parseInt(b.dataset.f);
-        document.querySelectorAll('#flapSeg button').forEach(x => x.classList.remove('on'));
-        b.classList.add('on');
-        calc();
-      };
-    });
-    document.querySelectorAll('input').forEach(i => i.addEventListener('input', calc));
-    document.getElementById('envDetails').addEventListener('toggle', calc);
-    window.addEventListener('resize', calc);
-    window.addEventListener('load', calc);
-  </script>
+document.querySelectorAll('#flapSeg button').forEach(b=>{
+  b.onclick = ()=>{
+    flap = parseInt(b.dataset.f);
+    document.querySelectorAll('#flapSeg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    calc();
+  };
+});
+document.querySelectorAll('input').forEach(i=> i.addEventListener('input', calc));
+document.getElementById('envDetails').addEventListener('toggle', calc);
+window.addEventListener('resize', calc);
+window.addEventListener('load', calc);
+</script>
 </body>
-
 </html>
