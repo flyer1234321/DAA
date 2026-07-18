@@ -289,7 +289,10 @@
 
 <body>
 
-  <h1>CRJ900 · DAA Trim Correction</h1>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <h1 style="margin:0;">CRJ900 · DAA Trim Correction</h1>
+    <button onclick="resetAll()" style="background:var(--line); color:var(--txt); border:none; padding:6px 12px; border-radius:6px; font-size:0.75rem; font-weight:bold; cursor:pointer;">RESET</button>
+  </div>
 
   <div class="card">
     <div class="row3">
@@ -302,11 +305,11 @@
       </div>
       <div>
         <label>TOW (kg)</label>
-        <input type="number" id="tow" inputmode="numeric" value="37416" onfocus="this.select()">
+        <input type="number" id="tow" inputmode="numeric" value="35000" onfocus="this.select()">
       </div>
       <div>
         <label>Trim (UP)</label>
-        <input type="number" id="trim" inputmode="decimal" step="0.1" min="0" max="15" value="9.4" onfocus="this.select()">
+        <input type="number" id="trim" inputmode="decimal" step="0.1" min="0" max="15" value="6.5" onfocus="this.select()">
       </div>
     </div>
   </div>
@@ -414,6 +417,23 @@
     };
 
     let flap = 20;
+
+    function resetAll() {
+      document.getElementById('tow').value = '35000';
+      document.getElementById('trim').value = '6.5';
+      document.getElementById('h1').value = '0';
+      document.getElementById('h2').value = '0';
+      document.getElementById('h6').value = '0';
+      document.getElementById('zfw').value = '32616';
+      document.getElementById('lizfw').value = '36.2';
+      document.getElementById('litow').value = '34.5';
+      flap = 20;
+      document.querySelectorAll('#flapSeg button').forEach(x => {
+        if (x.dataset.f === "20") x.classList.add('on');
+        else x.classList.remove('on');
+      });
+      calc();
+    }
 
     function interp(xs, ys, x) {
       if (x <= xs[0]) { const s = (ys[1] - ys[0]) / (xs[1] - xs[0]); return ys[0] + s * (x - xs[0]); }
