@@ -458,6 +458,21 @@ function slope(w){
   if (w >= W_HI) return SLOPE_F20_HI;
   return SLOPE_F20_LO + (SLOPE_F20_HI-SLOPE_F20_LO)*(w-W_LO)/(W_HI-W_LO);
 }
+function invTrimMac(t, w){
+  // invert take-off trim table -> %MAC (piecewise linear, extrapolated at ends)
+  const ts = MACS.map(m=>trimTable(m, w, flap)); // descending values
+  if (t >= ts[0]) { const sl=(MACS[1]-MACS[0])/(ts[1]-ts[0]); return MACS[0]+sl*(t-ts[0]); }
+  const n=ts.length;
+  if (t <= ts[n-1]) { const sl=(MACS[n-1]-MACS[n-2])/(ts[n-1]-ts[n-2]); return MACS[n-1]+sl*(t-ts[n-1]); }
+  for(let i=1;i<n;i++){
+    if (t >= ts[i]){ const f=(t-ts[i-1])/(ts[i]-ts[i-1]); return MACS[i-1]+f*(MACS[i]-MACS[i-1]); }
+  }
+}
+function estLitowFromTrim(tow, trim){
+  const mac = invTrimMac(trim, tow);
+  const arm = 21.161 + mac/100*MAC_M;
+  return 50 + tow*(arm-21.844)/IDX_C;
+}
 function trimTable(mac, w, f){
   if (f === 8) return interp(MACS, TTAB.f8, mac);
   const lo = interp(MACS, TTAB.f20lo, mac), hi = interp(MACS, TTAB.f20hi, mac);
@@ -593,9 +608,14 @@ function calc(){
     const fuel = tow - zfwv0;
     fd.value = fuel + ' kg / ' + fmt(fuelIndex(fuel),1,true);
   } else fd.value = '';
+  const trim0 = val('trim');
+  const canEst = !isNaN(tow) && !isNaN(trim0) && trim0>=TRIM_MIN && trim0<=TRIM_MAX;
+  const ltEl = document.getElementById('litow');
+  ltEl.placeholder = (isNaN(litow0) && canEst) ? '\u2248 ' + estLitowFromTrim(tow, trim0).toFixed(1) : 'enter';
+  const litowEff = !isNaN(litow0) ? litow0 : (canEst ? estLitowFromTrim(tow, trim0) : NaN);
   const lzEl = document.getElementById('lizfw');
-  if (!isNaN(tow) && !isNaN(zfwv0) && !isNaN(litow0) && tow > zfwv0){
-    lzEl.placeholder = 'auto ' + (litow0 - fuelIndex(tow - zfwv0)).toFixed(1);
+  if (!isNaN(tow) && !isNaN(zfwv0) && !isNaN(litowEff) && tow > zfwv0){
+    lzEl.placeholder = (isNaN(litow0)?'\u2248 ':'auto ') + (litowEff - fuelIndex(tow - zfwv0)).toFixed(1);
   } else lzEl.placeholder = 'auto';
 
   const resCard = document.getElementById('resCard');
@@ -656,12 +676,17 @@ function calc(){
 }
 
 function drawEnv(dIdx, addKg){
-  const tow=val('tow'), zfw=val('zfw'), litow=val('litow');
+  const tow=val('tow'), zfw=val('zfw'), trimv=val('trim');
+  let litow=val('litow'), litowEst=false;
+  if (isNaN(litow) && !isNaN(tow) && !isNaN(trimv) && trimv>=TRIM_MIN && trimv<=TRIM_MAX){
+    litow = estLitowFromTrim(tow, trimv); litowEst = true;
+  }
   let lizfw = val('lizfw'), lizfwAuto = false;
   if (isNaN(lizfw) && !isNaN(tow) && !isNaN(zfw) && !isNaN(litow) && tow > zfw){
     const fuel = tow - zfw;
     if (fuel <= FUEL_MAX){ lizfw = litow - fuelIndex(fuel); lizfwAuto = true; }
   }
+  const anyEst = litowEst;
 
   const env = envBase('env', PAX_FWD, PAX_AFT, POS_FWD, POS_AFT);
   if (!env) return;
@@ -672,7 +697,7 @@ function drawEnv(dIdx, addKg){
 
   if (!haveTOW && !haveZFW){
     ctx.fillStyle='rgba(110,120,140,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('Enter LITOW + ZFW to plot the CG points (LIZFW auto via fuel CG)', mL+(cssW-mL-mR)/2, cssH-mB-12);
+    ctx.fillText('Faded \u2248 point = estimated from trim \u00b7 enter LITOW (+ ZFW) for exact', mL+(cssW-mL-mR)/2, cssH-mB-12);
     document.getElementById('rMargin').textContent='–';
     document.getElementById('rLi').textContent='–';
     return;
@@ -681,28 +706,33 @@ function drawEnv(dIdx, addKg){
   const moved = (dIdx!==0);
   const zfw2 = zfw, tow2 = tow; // DAA bags: index shift only, no weight change
 
+  if (anyEst) ctx.globalAlpha = 0.4;
   if (haveZFW){
     if (moved){ link(lizfw,zfw, lizfw+dIdx,zfw2); ptBefore(lizfw, zfw); }
-    ptCross(lizfw+dIdx, zfw2, 'ZFW');
+    ptCross(lizfw+dIdx, zfw2, anyEst?'ZFW\u2248':'ZFW');
   }
   if (haveTOW){
     if (moved){ link(litow,tow, litow+dIdx,tow2); ptBefore(litow, tow); }
-    ptCross(litow+dIdx, tow2, 'TOW');
+    ptCross(litow+dIdx, tow2, anyEst?'TOW\u2248':'TOW');
   }
+  ctx.globalAlpha = 1;
 
   document.getElementById('rLi').textContent =
-    (haveZFW ? (lizfw+dIdx).toFixed(1) + (lizfwAuto?' (auto)':'') : '–') + ' / ' + (haveTOW ? (litow+dIdx).toFixed(1) : '–');
+    (haveZFW ? (anyEst?'\u2248 ':'') + (lizfw+dIdx).toFixed(1) + (lizfwAuto&&!anyEst?' (auto)':'') : '\u2013') + ' / ' +
+    (haveTOW ? (litowEst?'\u2248 ':'') + (litow+dIdx).toFixed(1) : '\u2013');
 
   const msgs = document.getElementById('msgs');
   if (haveTOW){
     const mFwd = (litow+dIdx) - limIdx(PAX_FWD, tow2);
     const mAft = limIdx(PAX_AFT, tow2) - (litow+dIdx);
     const el = document.getElementById('rMargin');
-    el.textContent = fmt(mFwd,1) + ' / ' + fmt(mAft,1) + ' index';
+    el.textContent = (litowEst?'≈ ':'') + fmt(mFwd,1) + ' / ' + fmt(mAft,1) + ' index';
     el.className = 'v ' + ((mFwd<0||mAft<0)?'neg':'pos');
     if (mFwd < 0 || mAft < 0)
-      msgs.innerHTML += '<div class="alert">⚠ Corrected TOW point outside the passenger-flight envelope (AHM565) — verify with load control.</div>';
-    else if (mFwd < 2 || mAft < 2)
+      msgs.innerHTML += litowEst
+        ? '<div class="warn">≈ Estimated TOW point outside envelope — enter LITOW from the loadsheet to verify.</div>'
+        : '<div class="alert">⚠ Corrected TOW point outside the passenger-flight envelope (AHM565) — verify with load control.</div>';
+    else if (!litowEst && (mFwd < 2 || mAft < 2))
       msgs.innerHTML += '<div class="warn">Corrected TOW point within 2 index of a limit — double-check.</div>';
   } else {
     document.getElementById('rMargin').textContent='–';
