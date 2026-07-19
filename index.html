@@ -196,6 +196,18 @@
   <div id="msgs"></div>
 </div>
 
+<details id="prelDetails">
+  <summary>Prel. trim from weight + %MAC</summary>
+  <div class="grid">
+    <div><label>Weight (kg)</label><input type="number" id="pTow" inputmode="numeric" placeholder="enter"></div>
+    <div><label>%MAC</label><input type="number" id="pMac" inputmode="decimal" step="0.1" placeholder="enter"></div>
+  </div>
+  <div class="rrow"><span class="k">Stab trim flaps 8</span><span class="v" id="pT8">–</span></div>
+  <div class="rrow" style="border:none; margin-bottom:8px"><span class="k">Stab trim flaps 20</span><span class="v" id="pT20">–</span></div>
+  <div id="pMsg"></div>
+  <div class="disc" style="margin:4px 0 12px">Per the AHM take-off trim table (10–35 %MAC, flaps 20 weight-interpolated 24947–26308 kg). If the prel. %MAC comes from an EDP loadsheet with a different %MAC datum, the final loadsheet trim may differ.</div>
+</details>
+
 <details id="envDetails">
   <summary>Envelope check (optional)</summary>
   <div class="grid">
@@ -961,6 +973,29 @@ function printSheet(){
   window.print();
 }
 
+// ================= Prel trim from weight + %MAC =================
+function trimTableX(m, w, f){ // like trimTable but linearly extrapolated outside 10–35 %MAC
+  if (m >= 10 && m <= 35) return trimTable(m, w, f);
+  const a = m < 10 ? [10,15] : [30,35];
+  const t1 = trimTable(a[0], w, f), t2 = trimTable(a[1], w, f);
+  const sl = (t2 - t1) / (a[1] - a[0]);
+  return m < 10 ? t1 + sl*(m - a[0]) : t2 + sl*(m - a[1]);
+}
+function calcPrel(){
+  const w=val('pTow'), m=val('pMac');
+  const t8el=document.getElementById('pT8'), t20el=document.getElementById('pT20'), pm=document.getElementById('pMsg');
+  if (isNaN(w) || isNaN(m)){ t8el.textContent='–'; t20el.textContent='–'; pm.innerHTML=''; return; }
+  const t8=trimTableX(m,w,8), t20=trimTableX(m,w,20);
+  const extrap = (m<10 || m>35);
+  t8el.textContent = t8.toFixed(1) + ' UP' + (extrap?' ≈':'');
+  t20el.textContent = t20.toFixed(1) + ' UP' + (extrap?' ≈':'');
+  let msg='';
+  if (extrap) msg += '<div class="warn">%MAC outside table range 10–35 — trim extrapolated (≈).</div>';
+  if (w<MINW || w>MTOW) msg += '<div class="warn">Weight outside 20412–37995 kg.</div>';
+  if (w>W_LO && w<W_HI) msg += '<div class="warn">Flaps 20 interpolated between weight columns (24947–26308 kg).</div>';
+  pm.innerHTML = msg;
+}
+
 // ================= Persistence (auto-save / restore) =================
 const LS_KEY='crj900_lt_v1';
 function saveState(){
@@ -1015,16 +1050,18 @@ document.querySelectorAll('#flapSeg button').forEach(b=>{
     saveState();
   };
 });
-document.querySelectorAll('#tab1 input').forEach(i=> i.addEventListener('input', ()=>{calc(); saveState();}));
+document.querySelectorAll('#tab1 input').forEach(i=> i.addEventListener('input', ()=>{calc(); calcPrel(); saveState();}));
 document.querySelectorAll('#tab2 input').forEach(i=> i.addEventListener('input', ()=>{calcMS(); saveState();}));
 document.querySelectorAll('#tab2 select').forEach(s=> s.addEventListener('change', ()=>{fillDomDoi(); saveState();}));
 document.getElementById('envDetails').addEventListener('toggle', calc);
+document.getElementById('prelDetails').addEventListener('toggle', calcPrel);
 window.addEventListener('resize', ()=>{ calc(); calcMS(); });
 window.addEventListener('load', ()=>{
   restoreState();
   const d=document.getElementById('mDate');
   if(d && !d.value){ d.value = new Date().toISOString().slice(0,10); }
   calc();
+  calcPrel();
   calcMS();
 });
 </script>
